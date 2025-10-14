@@ -1,0 +1,23 @@
+---
+description: "Development process and collaboration rules. Guidelines for effective communication and code review practices."
+globs:
+alwaysApply: true
+---
+
+## Process Rules
+
+- If you have clarifying questions, always ask them.
+
+- **Incremental Step-by-Step Development:**
+  For complex tasks involving multiple files or architectural changes:
+  1. First, analyze the task thoroughly and create a detailed step-by-step plan
+  2. Present the complete plan to the user for review and discussion
+  3. Implement changes incrementally, one step at a time
+  4. Provide complete, ready-to-use code for each step
+  5. Wait for user confirmation before proceeding to the next step
+  6. Keep responses focused and concise - avoid repeating previous steps or unnecessary explanations
+  7. Be efficient with context - provide only what's needed for the current step
+  8. If user asks clarifying questions, answer them before continuing
+  9. After user applies changes and confirms, immediately proceed to the next step
+  
+  This approach ensures clarity, allows for early feedback, prevents context overload, and maximizes development efficiency.

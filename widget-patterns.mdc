@@ -1,0 +1,32 @@
+---
+description: "Flutter widget development rules. Covers build method optimization, widget composition, context handling, and controller injection patterns for maintainable UI code."
+globs:
+alwaysApply: true
+---
+
+## Widget Pattern Rules
+
+- Avoid long methods and complex logic in build methods, onPressed callbacks, and similar UI handlers. Extract complex logic into separate methods.
+- Extract string concatenations into dedicated methods instead of inline operations.
+- Create separate widgets instead of methods that return widgets. Avoid widget-returning methods in widget classes.
+- Never use Container widget. Decompose its properties into simple widgets when needed.
+- WidgetsBinding.instance.addPostFrameCallback should be used extremely rarely and only where it is truly necessary.
+- Always verify widget context exists before creating dialogs. Check context.mounted before accessing context-dependent operations to prevent 'context not found' errors.
+- Pass callback functions (events or controller methods) to reusable widgets instead of passing state managers directly.
+- When injecting controllers into context through providers, get controllers from DI. When accessing in widget tree, get controllers from context, not from DI.
+- In dialogs and context changes, pass controller methods instead of controllers themselves.
+- Use keys for widgets that need to maintain state across rebuilds
+- Use proper theme inheritance instead of hardcoded colors and styles
+- Implement responsive design with MediaQuery and LayoutBuilder
+- Implement proper loading states and error handling in UI components
+- Use RepaintBoundary for expensive custom painters
+- Implement proper widget keys for state preservation
+- Use AnimatedBuilder for complex animations
+- Implement proper gesture handling with GestureDetector
+- Use proper focus management for form inputs
+- Use proper navigation patterns (GoRouter, AutoRouter, Navigator 2.0) instead of Navigator.push/pop
+- Implement proper loading states and error boundaries
+- Use proper form validation with FormField widgets
+- Implement proper keyboard handling and input actions
+- Use proper scroll physics for different content types
+- Implement proper image loading with error handling

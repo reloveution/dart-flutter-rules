@@ -1,0 +1,22 @@
+---
+description: "Resource lifecycle management rules. Covers Timer usage, subscription disposal, memory cleanup, and proper resource lifecycle patterns to prevent memory leaks in Flutter applications."
+globs:
+alwaysApply: true
+---
+
+## Resource Management Rules
+
+- Use Timer instead of Future.delayed with mandatory cancellation in dispose/close. Timer must be nullable and cancelled before creating new instances and in cleanup methods.
+- Always dispose resources properly. Cancel subscriptions, close streams, and free memory in dispose methods. After cancelling subscriptions, always nullify the variable to prevent errors with non-null variables.
+- Use proper stream controllers and close them in dispose methods
+- Implement proper image caching and disposal
+- Use proper database connection management and closing
+- Implement proper file handle management and closing
+- Use proper network request cancellation when widgets are disposed
+- Monitor memory usage and implement proper garbage collection triggers
+- Dispose animation controllers and tickers in dispose methods
+- Cancel pending futures and operations when widgets are disposed
+- Close file streams and database connections properly
+- Release native resources (cameras, sensors, etc.) when no longer needed
+- Use proper scoping for resources to avoid memory leaks
+- Implement proper cleanup in app lifecycle methods (pause, resume, dispose)

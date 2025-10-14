@@ -1,0 +1,20 @@
+---
+description: "Performance optimization rules for Flutter applications. Covers UI rendering optimization, algorithm efficiency, and computational performance patterns."
+globs:
+alwaysApply: true
+---
+
+## Performance Rules
+
+- Use ListView.builder for large lists instead of Column/Row with many children
+- Implement proper list item recycling with const constructors where possible
+- Use Image.asset with proper caching instead of loading images repeatedly
+- Avoid expensive operations in build() methods - use builders or separate widgets
+- Use RepaintBoundary for complex custom painters
+- Implement proper pagination for large datasets
+- Use isolates for CPU-intensive operations (calculations, data processing)
+- Optimize widget rebuilds with proper keys and state management
+- Use const constructors for static widgets to reduce rebuild overhead
+- Implement lazy loading for large datasets
+- Use efficient data structures and algorithms for performance-critical operations
+- Profile app performance regularly using Flutter DevTools

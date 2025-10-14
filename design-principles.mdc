@@ -1,0 +1,70 @@
+---
+description: "Core software design principles for maintainable and scalable code. Covers SOLID principles, composition patterns, and architectural decision guidelines."
+globs:
+alwaysApply: true
+---
+
+## Design Principles Rules
+
+### SOLID Principles
+- **Single Responsibility**: Each class should have only one reason to change. Split classes that handle multiple concerns.
+- **Open/Closed**: Classes should be open for extension but closed for modification. Use interfaces and inheritance.
+- **Liskov Substitution**: Subtypes must be substitutable for their base types. Maintain behavioral contracts.
+- **Interface Segregation**: Create specific interfaces rather than large, general-purpose ones. Clients shouldn't depend on unused methods.
+- **Dependency Inversion**: Depend on abstractions, not concretions. High-level modules shouldn't depend on low-level modules.
+
+### Composition and Abstraction
+- Use composition over inheritance for better flexibility and testability, when it's logically justified and provides clear benefits over inheritance.
+- Create proper abstraction layers to decouple components.
+- Use interfaces to define contracts between modules.
+- Implement proper encapsulation to hide internal implementation details.
+
+### Architectural Guidelines
+- Design for extension and modification without breaking existing code.
+- Create loosely coupled, highly cohesive modules.
+- Use dependency injection for better testability and flexibility.
+- Implement proper separation of concerns at all levels.
+- Implement proper abstraction layers to hide implementation details.
+
+### Polymorphism Over Type Checking
+- Prefer polymorphism through base interfaces over switch/case type checking when all implementations share common behavior.
+- If all cases in a switch statement call the same method with the same parameters, use the base interface method directly.
+- Avoid unnecessary type casting (`as`) when the base interface provides the needed functionality.
+- Let the type system enforce correctness at compile time rather than runtime type checks.
+    **Bad (redundant switch with type casting):**
+    ```dart
+    IParam _updateParam(IParam param, IParamValue newValue, String changedBy) {
+    switch (param.paramType) {
+        case ParamType.text:
+        final textParam = param as TextParam;
+        return textParam.copyWith(
+            changeHistory: textParam.changeHistory.addChange(newValue as TextParamValue, changedBy),
+        );
+        case ParamType.integer:
+        final intParam = param as IntegerParam;
+        return intParam.copyWith(
+            changeHistory: intParam.changeHistory.addChange(newValue as IntegerParamValue, changedBy),
+        );
+        case ParamType.decimal:
+        final decParam = param as DecimalParam;
+        return decParam.copyWith(
+            changeHistory: decParam.changeHistory.addChange(newValue as DecimalParamValue, changedBy),
+        );                
+    }
+    }
+    ```
+    **Good (polymorphic approach):**
+    ```dart
+    IParam _updateParam(IParam param, IParamValue newValue, String changedBy) =>
+        param.copyWith(
+        changeHistory: param.changeHistory.addChange(newValue, changedBy),
+        );
+    ```
+    **Benefits:**
+    - Eliminates 30+ lines of boilerplate code
+    - Type safety enforced by generics and interface contracts
+    - Automatically works with new implementations without code changes
+    - Concrete types preserved at runtime through polymorphism
+    - More maintainable and less error-prone
+    **When to use:** When all type-specific cases perform identical operations using methods from the base interface.
+

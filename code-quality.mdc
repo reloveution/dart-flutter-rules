@@ -1,0 +1,90 @@
+---
+description: "Core code quality rules for clean, maintainable Dart/Flutter code. Covers async/await, null safety, const constructors, error handling, class member ordering, and general best practices."
+globs:
+alwaysApply: true
+---
+
+## Code Quality Rules
+
+- Do not leave print or debugPrint statements in production code.
+- Do not add new comments in code. Only TODO comments in English are allowed. Do not modify existing comments.
+- Extract all user-facing strings to localization files immediately. Do not hardcode strings in code.
+- Always use async/await instead of .then() for asynchronous operations.
+- Prefer arrow functions where applicable. Use arrow functions for single-expression functions and callbacks.
+- Prefer arrow functions where applicable. Use arrow functions for single-expression functions and callbacks.
+- For widget build methods and BlocBuilder callbacks, prefer arrow functions with ternary operators over if-else blocks. Replace unused callback parameters with underscore (_).
+- Use null-aware operators and avoid redundant null checks. Prefer ?. and ?? operators over explicit if-null checks. Use ?? operator instead of if-null blocks for simple value assignments. Remove redundant empty else blocks.
+- Use single-line early returns instead of block statements for simple conditions.
+- Use const constructors everywhere possible for performance optimization. Apply to UI widgets when data is static, not to business logic methods.
+- Use getters instead of parameterless methods for object properties.
+- Use functional programming methods (map, where, fold) instead of imperative loops for data transformations.
+- Always check for null data before using it. Use explicit null checks instead of force unwrapping with ! operator.
+- Avoid expensive operations in build methods.
+- Handle errors gracefully in UI. Show user-friendly messages, never expose technical details to users.
+- Avoid blocking the UI thread. Use async/await for I/O operations, consider using isolates for CPU-intensive tasks.
+- Use Duration constructor with milliseconds for consistency, as most APIs return values in milliseconds.
+- Avoid magic numbers. Use constants from AppConstants instead. Add new constants to AppConstants when needed.
+- Use sealed classes for state management instead of free classes when possible
+- Implement proper error boundaries with fallback UI components
+- Use late initialization for non-null variables that are initialized after construction
+- Prefer named parameters for functions with more than 2 parameters
+- Use typedef for complex function signatures to improve readability
+- Implement proper logging levels (debug, info, warning, error) instead of print statements
+- Use extension methods for utility functions instead of static methods
+- Prefer composition over inheritance
+- Implement proper data validation using validators
+- Use factory constructors for complex object creation
+- Avoid deep nesting - extract methods when nesting exceeds 3 levels
+- Use meaningful variable names that describe their purpose
+- Implement proper null safety patterns throughout the codebase
+- Use cascade operators (..) for method chaining when appropriate
+- Prefer final variables over var when the value won't change
+- Prefer final variables with ternary/conditional expressions over mutable variables changed in if-else blocks. This ensures all possible values are explicit and prevents missed assignments:
+  Bad: `int val = x; if (cond) { val = y; }`
+  Good: `final int val = cond ? y : x;`
+  For complex conditions, extract calculation into a separate method.
+- Use const constructors for immutable objects
+- Implement proper toString() methods for debugging
+- Use assert statements for development-time checks
+- Avoid using dynamic type - use proper type annotations
+- Implement proper hashCode and operator== for custom classes
+- Follow DRY (Don't Repeat Yourself) principle - eliminate code duplication
+- Extract common functionality into reusable components
+- Use inheritance and composition to share behavior without duplication
+- Create utility functions for repeated logic patterns
+- Don't use async/await for simple Future pass-through. Use arrow function syntax when only returning a Future:
+  Bad: `Future<T> method() async { return await other(); }`
+  Good: `Future<T> method() => other();`
+  Use async/await only when processing results, handling errors, or performing additional operations.
+- Use Guard Clauses (early returns) to reduce nesting and improve readability. Validate preconditions at the start of methods with inverted conditions and return early for invalid cases. This keeps the main logic at the lowest nesting level and makes method requirements explicit:
+  Bad: `if (state is Loaded) { /* main logic nested */ }`
+  Good: `if (state is! Loaded) return; /* main logic at root level */`
+  Prefer `is!` operator for readability over `!(x is Type)`.
+- Use `.byName()` for parsing enum from strings instead of hardcoded string literals. Don't create intermediate variable if used only once, unless needed for logging or multiple uses.
+  Bad: `case 'text': return TextParam.fromJson(json);`
+  Good: `switch (ParamType.values.byName(json['type'] as String)) { case ParamType.text: return TextParam.fromJson(json); }`
+- Don't use explicit boolean comparisons (`== true` or `== false`) with boolean expressions. Boolean values should be used directly in conditions.
+  Bad: `if (isValid == true) { }`, `final result = value == false ? a : b`
+  Good: `if (isValid) { }`, `final result = value ? a : b`, `if (!isValid) { }`
+  Exception: Nullable booleans (`bool?`) may require `== true` to distinguish between true, false, and null: `if (maybeTrue == true) { }` is different from `if (maybeTrue ?? false) { }`.
+
+## Class Member Declaration Order
+
+### Required Order:
+1. **Static constants** (static const)
+2. **Class fields** (final → regular fields)  
+3. **Constructor**
+4. **Getters/Setters**
+5. **Lifecycle methods** (initState, dispose, etc.)
+6. **Override methods** (methods with @override annotation)
+7. **Public methods**
+8. **Private methods**
+
+### Internal Methods (Helper Methods):
+- Internal methods (written to break down long methods) go **after** external methods
+- Grouped at the end of the corresponding section (public/private)
+
+### Formatting:
+- Add empty lines between logical groups of methods
+- Group related methods together
+- Follow single responsibility principle

@@ -1,0 +1,14 @@
+---
+description: "State management best practices for Flutter applications. Covers immutable state, serialization, persistence, and state synchronization patterns."
+globs:
+alwaysApply: true
+---
+
+## State Management Rules
+
+- Keep state immutable and use copyWith methods for updates
+- Implement proper state serialization for app lifecycle management
+- Use proper state hydration for app restoration
+- Implement proper state persistence for offline functionality
+- Use proper state synchronization between multiple instances
+- Implement proper state validation and sanitization

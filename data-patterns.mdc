@@ -1,0 +1,21 @@
+---
+description: "Data handling patterns for Flutter applications. Covers data transformation, serialization, caching, and data flow patterns."
+globs:
+alwaysApply: true
+---
+
+## Data Patterns Rules
+
+- Use DTOs for data transfer between layers
+- Implement proper JSON serialization with fromJson/toJson
+- Use data classes with copyWith methods for immutable data
+- Implement proper data validation at boundaries
+- Use streams for real-time data updates
+- Implement proper caching strategies with TTL
+- Use pagination for large datasets
+- Handle data synchronization between local and remote sources
+- Implement proper data migration strategies
+- Use proper data modeling for complex relationships
+- Implement data compression for large payloads
+- Use proper data encryption for sensitive information
+- Implement data backup and recovery mechanisms

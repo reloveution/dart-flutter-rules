@@ -1,0 +1,22 @@
+---
+description: "Error handling and logging patterns for Flutter applications. Covers exception handling, logging strategies, and user-friendly error messages."
+globs:
+alwaysApply: true
+---
+
+## Error Handling Rules
+
+- Use Result<T> pattern for all business operations instead of throwing exceptions
+- Implement specific error types instead of generic Exception
+- Log errors with appropriate severity levels (debug, info, warning, error)
+- Never expose technical error details to end users
+- Provide meaningful error messages with actionable guidance
+- Implement proper error boundaries in UI components
+- Handle network errors gracefully with retry mechanisms
+- Validate user input and provide immediate feedback
+- Use structured logging with context information
+- Implement proper error reporting for production apps
+- Handle platform-specific errors appropriately
+- Use Result<T> for all business operations, including synchronous ones
+- Use try-catch only for external API calls and system operations
+- Convert caught exceptions to Result<T> failures immediately

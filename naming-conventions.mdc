@@ -1,0 +1,20 @@
+---
+description: "Naming conventions and code organization rules. Covers function naming, autocomplete optimization, and code discoverability patterns."
+globs:
+alwaysApply: true
+---
+
+## Naming Convention Rules
+
+- Prefix function names that are not called directly or called rarely with $ to hide them from autocomplete suggestions.
+- Use `I` prefix for interface classes (e.g., `IApiMagDecDts`, `IExportRepo`).
+- Use `Impl` suffix for concrete implementations (e.g., `MagDecRepoImpl`, `NoaaApiMagDecDtsImpl`).
+- Use `X` suffix for extensions. If multiple extensions exist, organize them in `X` folder (e.g., `ExtExcelPrjBaseSheet`).
+- Use `Mxn` suffix for mixins (e.g., `MxnExcelFormatting`, `MxnRepoCharsXlsxDisc`).
+- Use `Ucs` suffix for use cases (e.g., `GetMagDecUcs`, `ExecuteProjectExportUcs`).
+- Use `Dts` suffix for datasources (e.g., `IApiMagDecDts`, `IExcellExportDts`).
+- Use `repo` instead of `repository` in class names and folder names.
+- Use `dts` instead of `datasource` in folder names and variable names.
+- For datasource implementations using external packages, include package name or abbreviation as prefix. Format: `{PackageName}{FeatureMarking}{Dts}Impl` (e.g., `ExcelExportDtsImpl`, `NoaaApiMagDecDtsImpl`).
+- Interface names should follow `I{FeatureMarking}{Dts}` pattern (e.g., `IDocumentDts`, `IApiMagDecDts`).
+- When repository handles multiple datasources within a feature, create separate folders for each datasource direction under implementation folder (e.g., `api/`, `excell/`, `csv/`).

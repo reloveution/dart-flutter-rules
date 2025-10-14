@@ -1,0 +1,16 @@
+---
+description: "Security best practices for Flutter applications. Covers data protection, secure storage, input validation, and secure communication patterns."
+globs:
+alwaysApply: true
+---
+
+## Security Rules
+
+- Never store sensitive data in SharedPreferences or plain text files
+- Use Flutter Secure Storage for API keys, tokens, and user credentials
+- Validate all user inputs on both client and server sides
+- Sanitize data before displaying to prevent XSS attacks
+- Use HTTPS for all network communications
+- Implement proper session management and token refresh
+- Never log sensitive information (passwords, tokens, personal data)
+- Use certificate pinning for critical API communications

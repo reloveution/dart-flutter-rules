@@ -1,0 +1,20 @@
+---
+description: "Simplicity and directness principles for Flutter development. Emphasizes choosing straightforward solutions over complex ones, avoiding over-engineering, and preferring readable code over clever implementations."
+globs:
+alwaysApply: true
+---
+
+## Simplicity Rules
+
+- Solve problems using the most direct and simple approach
+- Don't create complex operation chains where simple solutions exist
+- If a task can be solved in 2-3 steps, don't make it 10 steps
+- Avoid "clever" solutions where simple ones work
+- Try the obvious approach first, then optimize if needed
+- Don't add abstractions without real necessity
+- Prefer readable code over "smart" code
+- If a solution looks too complex, there's probably a simpler one
+- Apply YAGNI (You Aren't Gonna Need It) - don't add functionality until it's actually needed
+- Follow Occam's Razor - the simplest solution is usually the best one
+- Avoid premature optimization and over-engineering
+- Implement features incrementally based on real requirements
