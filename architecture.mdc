@@ -12,6 +12,15 @@ alwaysApply: true
 - Implement proper separation of concerns at all levels.
 - Implement proper abstraction layers to hide implementation details.
 
+## Application Architecture
+- **Separation of Concerns:** Aim for separation of concerns similar to MVC/MVVM, with defined Model, View, and ViewModel/Controller roles.
+- **Logical Layers:** Organize the project into logical layers:
+  - Presentation (widgets, screens)
+  - Domain (business logic classes)
+  - Data (model classes, API clients)
+  - Core (shared classes, utilities, and extension types)
+- **Feature-based Organization:** For larger projects, organize code by feature, where each feature has its own presentation, domain, and data subfolders. This improves navigability and scalability.
+
 ## Error Handling
 - Use Result<T> for all business logic error handling. Use runZonedGuarded for critical measurement operations. Use try/catch for additional protection within zones. This creates multi-level error protection for scientific data integrity.
 - All services, repositories, use cases, and controllers must communicate through Result<T> wrapper. Never throw exceptions in business logic.
@@ -35,3 +44,9 @@ alwaysApply: true
 - Use Cases can be shared across different feature controllers
 - Use Cases can depend on other Use Cases through constructor interfaces
 - Data parsing should be performed in the repository layer. DataSources should return raw data, repositories handle parsing and transformation.
+
+## Project Structure
+- **Standard Structure:** Assumes a standard Flutter project structure with `lib/main.dart` as the primary application entry point.
+
+## Code Structure
+- **Separation of Concerns:** Adhere to maintainable code structure and separation of concerns. UI logic should be separate from business logic.

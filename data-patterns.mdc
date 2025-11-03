@@ -6,6 +6,11 @@ alwaysApply: true
 
 # Data Patterns Rules
 
+## Data Flow
+
+- **Data Structures:** Define data structures (classes) to represent the data used in the application.
+- **Data Abstraction:** Abstract data sources (e.g., API calls, database operations) using Repositories/Services to promote testability.
+
 ## Data Transfer & Serialization
 - Use DTOs for data transfer between layers
 - Implement proper JSON serialization with fromJson/toJson

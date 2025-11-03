@@ -6,6 +6,7 @@ alwaysApply: true
 
 # Error Handling Rules
 
+- Error Prevention: Anticipate and handle potential errors. Don't let your code fail silently.
 - Implement specific error types instead of generic Exception
 - Provide meaningful error messages with actionable guidance
 - Handle network errors gracefully with retry mechanisms

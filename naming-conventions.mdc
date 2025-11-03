@@ -19,3 +19,7 @@ alwaysApply: true
 - Interface names should follow `I{FeatureMarking}{Dts}` pattern (e.g., `IDocumentDts`, `IApiMagDecDts`).
 - When repository handles multiple datasources within a feature, create separate folders for each datasource direction under implementation folder (e.g., `api/`, `excell/`, `csv/`).
 - Variable abbreviations must have clear context. Bad: `idx` (`index`). Good: `fs` (`fracture systems`) with understandable context.
+- General Principles: Avoid abbreviations and use meaningful, consistent, descriptive names for variables, functions, and classes.
+- File Naming: Use `snake_case` for file names (e.g., `user_service.dart`, `api_client.dart`).
+- Class Naming: Use `PascalCase` for classes (e.g., `UserService`, `ApiClient`).
+- Member/Variable/Function Naming: Use `camelCase` for members, variables, functions, and enums (e.g., `userName`, `fetchUserData()`).

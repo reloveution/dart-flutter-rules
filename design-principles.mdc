@@ -13,6 +13,10 @@ alwaysApply: true
 - **Interface Segregation**: Create specific interfaces rather than large, general-purpose ones. Clients shouldn't depend on unused methods.
 - **Dependency Inversion**: Depend on abstractions, not concretions. High-level modules shouldn't depend on low-level modules.
 
+## Code Style Principles
+- **Concise and Declarative:** Write concise, modern, technical Dart code. Prefer functional and declarative patterns.
+- **Immutability:** Prefer immutable data structures. Widgets (especially `StatelessWidget`) should be immutable.
+
 ## Composition and Abstraction
 - Use composition over inheritance for better flexibility and testability, when it's logically justified and provides clear benefits over inheritance.
 - Create proper abstraction layers to decouple components.
@@ -62,7 +66,7 @@ alwaysApply: true
     **When to use:** When all type-specific cases perform identical operations using methods from the base interface.
 
 ## Code Reusability & Organization
-- Use inheritance and composition to share behavior without duplication
+- Use inheritance and/or composition to share behavior without duplication
 - Create utility functions for repeated logic patterns
 - Implement proper data validation using validators
 - Implement proper hashCode and operator== for custom classes

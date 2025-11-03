@@ -7,18 +7,35 @@ alwaysApply: true
 # Dependency Injection Rules
 
 ## Service Location & Container
-- Use get_it for service location and dependency injection
+- Use get_it as a dependency injection container for registering dependencies
 - Register dependencies in proper order (datasources → repositories → use cases → controllers)
 - Use proper dependency resolution order
+- **Important:** get_it should only be used at the composition root (app initialization). Never call `getIt.get<T>()` inside classes, except for rare exceptions such as accessing global services like audio players for UI feedback sounds.
 
 ## Registration Patterns
 - Use factory registration for stateless services
 - Use singleton registration for stateful services that need to persist
-- Prefer instance-based singletons registered in get_it. Avoid static methods and proxy wrappers for backward compatibility. Use constructor injection exclusively.
+- Prefer instance-based singletons registered in get_it. Avoid static methods and proxy wrappers for backward compatibility.
 
 ## Injection Patterns
-- Inject dependencies through constructors, not through service locator calls
+- **Always use constructor injection:** Inject all dependencies through constructors, never through service locator calls inside classes
+- Classes should receive their dependencies as constructor parameters, not fetch them internally
 - Use abstract classes for interfaces, not concrete implementations
+- **Bad:** Calling `getIt.get<IService>()` inside a class constructor or method (except rare exceptions like global UI services)
+- **Good:** Receiving dependencies as constructor parameters: `MyClass(this.service, this.repository)`
+- **Exception:** Rare cases where constructor injection is impractical (e.g., accessing global audio player for button click sounds). Such exceptions should be clearly documented and kept to absolute minimum.
+
+## Dependency Resolution
+- Resolve dependencies at the composition root (e.g., in `main()` or dependency setup function)
+- Pass resolved dependencies to constructors when creating instances
+- Example structure:
+```dart
+// At composition root (main.dart or setup function)
+final service = getIt<IService>();
+final repository = getIt<IRepository>(param1: service);
+final useCase = getIt<IUseCase>(param1: repository);
+final controller = MyController(useCase: useCase); // constructor injection
+```
 
 ## Dependency Management
 - Implement proper dependency lifecycle management
@@ -28,3 +45,4 @@ alwaysApply: true
 ## Testing & Configuration
 - Implement proper dependency testing with mocks
 - Use proper dependency configuration for different environments
+- Constructor injection enables easy mocking: `MyClass(mockService, mockRepository)`
