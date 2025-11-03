@@ -18,3 +18,4 @@ alwaysApply: true
 - For datasource implementations using external packages, include package name or abbreviation as prefix. Format: `{PackageName}{FeatureMarking}{Dts}Impl` (e.g., `ExcelExportDtsImpl`, `NoaaApiMagDecDtsImpl`).
 - Interface names should follow `I{FeatureMarking}{Dts}` pattern (e.g., `IDocumentDts`, `IApiMagDecDts`).
 - When repository handles multiple datasources within a feature, create separate folders for each datasource direction under implementation folder (e.g., `api/`, `excell/`, `csv/`).
+- Variable abbreviations must have clear context. Bad: `idx` (`index`). Good: `fs` (`fracture systems`) with understandable context.

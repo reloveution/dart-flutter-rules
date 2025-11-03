@@ -1,21 +1,35 @@
 ---
-description: "Data handling patterns for Flutter applications. Covers data transformation, serialization, caching, and data flow patterns."
+description: "Data handling patterns for Flutter applications. Covers data transformation, serialization, caching, layer separation, and data flow patterns."
 globs:
 alwaysApply: true
 ---
 
-## Data Patterns Rules
+# Data Patterns Rules
 
+## Data Transfer & Serialization
 - Use DTOs for data transfer between layers
 - Implement proper JSON serialization with fromJson/toJson
 - Use data classes with copyWith methods for immutable data
 - Implement proper data validation at boundaries
+
+## Real-time & Streaming
 - Use streams for real-time data updates
+
+## Caching & Performance
 - Implement proper caching strategies with TTL
 - Use pagination for large datasets
+
+## Data Synchronization
 - Handle data synchronization between local and remote sources
+
+## Data Management
 - Implement proper data migration strategies
 - Use proper data modeling for complex relationships
 - Implement data compression for large payloads
+
+## Security & Reliability
 - Use proper data encryption for sensitive information
 - Implement data backup and recovery mechanisms
+
+## Architecture Principles
+- Domain entities must have no knowledge of the database. DTO models encapsulate all mapping and JSON conversion logic. Table definitions should reference only DTOs, not converters.

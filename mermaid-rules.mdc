@@ -1,0 +1,325 @@
+---
+description: "Complete Mermaid diagram syntax rules for generating correct and professional diagrams. Covers all diagram types with proper syntax and formatting."
+globs:
+alwaysApply: true
+---
+
+# Mermaid Diagram Syntax Rules
+
+## Mermaid Diagram Generation Rules
+
+### General Syntax Rules
+- **Always start with diagram type declaration** - Use the correct directive on the first line
+- **Proper indentation** - Use 2 spaces for nested elements and subgraphs
+- **Escape special characters** - Wrap text containing special symbols in quotes
+- **Validate arrow syntax** - Use appropriate arrow types for each diagram
+- **Close all blocks** - Ensure all subgraphs, loops, and alt blocks have proper endings
+
+### Diagram Type Specifications
+
+#### Flowcharts (Modern)
+```mermaid
+flowchart TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action 1]
+    B -->|No| D[Action 2]
+    C --> E([End])
+    D --> E
+```
+
+**Rules:**
+- Use `flowchart TD` (top-down) or `flowchart LR` (left-right) instead of deprecated `graph`
+- Node shapes: `[rectangle]`, `(rounded)`, `{diamond}`, `((circle))`, `([stadium])`
+- Arrows: `-->` (solid), `-.->` (dotted), `==>` (thick)
+
+#### Sequence Diagrams
+```mermaid
+sequenceDiagram
+    participant A as Client
+    participant B as Server
+    
+    A->>B: Request
+    Note right of B: Processing
+    B-->>A: Response
+    loop Retry Logic
+        B->>B: Validate
+    end
+```
+
+**Rules:**
+- Define participants with `participant Name as Label`
+- Message types: `->>` (solid arrow), `->` (sync), `-->>` (dotted arrow)
+- Always close blocks: `loop`, `alt`, `opt`, `par` with `end`
+
+#### Class Diagrams
+```mermaid
+classDiagram
+    class Animal {
+        +String name
+        +int age
+        +eat() void
+    }
+    
+    class Dog {
+        +bark() void
+    }
+    
+    Animal <|-- Dog
+    Animal "1" --> "0..*" Leg : has
+```
+
+**Rules:**
+- Use `+` for public, `-` for private, `#` for protected
+- Relationship arrows: `<|--` (inheritance), `*--` (composition), `o--` (aggregation)
+- Cardinality: `"1" --> "0..*"` for relationships
+
+#### State Diagrams
+```mermaid
+stateDiagram-v2
+    [*] --> State1
+    State1 --> State2 : Event
+    State2 --> [*]
+    
+    state State1 {
+        [*] --> SubState1
+        SubState1 --> SubState2
+    }
+```
+
+**Rules:**
+- Use `stateDiagram-v2` for modern state diagrams
+- Start/end with `[*]`
+- Nest states with `state StateName { ... }`
+
+#### Module Structure Diagrams
+```mermaid
+flowchart TB
+    subgraph "Core Layer"
+        A[Domain Models]
+        B[Use Cases]
+    end
+    
+    subgraph "Data Layer"
+        C[Repositories]
+        D[Data Sources]
+    end
+    
+    subgraph "Presentation Layer"
+        E[Controllers]
+        F[UI Components]
+    end
+    
+    B --> A
+    C --> B
+    D --> C
+    E --> C
+    F --> E
+```
+
+**Rules:**
+- Use `flowchart TB` (top-bottom) for hierarchical module structure
+- Group related modules with `subgraph "Group Name"`
+- Show dependencies with `-->` arrows
+- Use descriptive module names in brackets
+
+#### Component Interaction Diagrams
+```mermaid
+flowchart LR
+    A[Client App] -->|HTTP/REST| B[API Gateway]
+    B -->|gRPC| C[Auth Service]
+    B -->|gRPC| D[Business Service]
+    C -->|SQL| E[(Auth DB)]
+    D -->|SQL| F[(Business DB)]
+    D -->|Message| G[Event Bus]
+    G -->|Event| H[Notification Service]
+```
+
+**Rules:**
+- Use `flowchart LR` (left-right) for component flow
+- Specify protocols with `|Protocol|` labels on arrows
+- Use `(())` for databases, `[]` for services
+- Show data flow direction clearly
+
+#### Data Flow Diagrams
+```mermaid
+flowchart LR
+    A[User Input] --> B[Validation Layer]
+    B --> C[Business Logic]
+    C --> D[Data Processing]
+    D --> E[Storage Layer]
+    E --> F[Database]
+    D --> G[External API]
+    G --> H[Response Processing]
+    H --> I[User Output]
+```
+
+**Rules:**
+- Use `flowchart LR` for horizontal data flow
+- Show transformation steps as rectangles `[]`
+- Use `-->` for data movement
+- Include external systems and data stores
+- Label transformation processes clearly
+
+#### Entity Relationship Diagrams
+```mermaid
+erDiagram
+    USER ||--o{ ORDER : places
+    ORDER ||--|{ ORDER_ITEM : contains
+    PRODUCT }o--o{ CATEGORY : "belongs to"
+    
+    USER {
+        int id PK
+        string email UK
+        string name
+    }
+    
+    ORDER {
+        int id PK
+        int user_id FK
+        date created_at
+    }
+```
+
+**Rules:**
+- Use `||--o{` for one-to-many relationships
+- Use `||--||` for one-to-one relationships
+- Use `}o--o{` for many-to-many relationships
+- Define entity attributes in curly braces
+- Use PK for primary keys, FK for foreign keys
+
+#### GitFlow Diagrams
+```mermaid
+gitGraph
+    commit id: "Initial"
+    branch develop
+    checkout develop
+    commit id: "Feature A"
+    branch feature/auth
+    checkout feature/auth
+    commit id: "Auth implementation"
+    checkout develop
+    merge feature/auth
+    commit id: "Release v1.0"
+    checkout main
+    merge develop
+```
+
+**Rules:**
+- Use `gitGraph` for version control workflows
+- Define branches with `branch branchName`
+- Use `checkout branchName` for switching
+- Use `merge branchName` for merging
+
+### Diagram Type Selection Guidelines
+
+#### When to Use Each Type:
+
+**Class Diagrams** - For static code structure:
+- Show relationships between classes
+- Document inheritance and composition
+- Design APIs and interfaces
+
+**Sequence Diagrams** - For temporal interactions:
+- API calls and responses
+- User scenarios
+- Debug complex flows
+
+**Flowcharts** - For algorithms and processes:
+- Business logic
+- User journeys
+- Conditional logic
+
+**State Diagrams** - For object behavior:
+- Object lifecycle
+- UI component states
+- Game state management
+
+**Module Structure** - For system architecture:
+- Clean Architecture layers
+- Dependency injection
+- Microservice architecture
+
+**Component Interaction** - For system integration:
+- API interactions
+- Microservices communication
+- Infrastructure setup
+
+**Data Flow** - For data processing:
+- ETL processes
+- Data pipelines
+- User journey mapping
+
+**Entity Relationship** - For database design:
+- Database schema
+- Data modeling
+- Relationship mapping
+
+**GitFlow** - For version control:
+- Branch strategies
+- Release workflows
+- Feature development
+
+### Practical Use Cases by Role
+
+#### For Flutter/Dart Development:
+- **BLoC State Management** → State Diagram
+- **Clean Architecture Layers** → Module Structure  
+- **API Integration Flows** → Sequence Diagram
+- **Navigation Logic** → Flowchart
+- **Widget Lifecycle** → State Diagram
+
+#### For Business Analysis:
+- **User Onboarding Journey** → Flowchart
+- **Payment Processing** → Sequence Diagram
+- **Data Pipeline Processing** → Data Flow
+- **Decision Trees** → Flowchart
+
+#### For System Architecture:
+- **Microservices Communication** → Component Interaction
+- **Database Schema Design** → Entity Relationship
+- **System Integration** → Sequence Diagram
+- **Module Dependencies** → Module Structure
+
+### Text Escaping and Formatting
+- **Wrap text in quotes** when containing special characters: `A["Text with → arrow"]`
+- **Use HTML entities** for symbols: `#8594;` for →, `#9824;` for ♠
+- **Line breaks** with `<br>`: `A["Line 1<br>Line 2"]`
+
+### Common Pitfalls and Solutions
+
+**Bad (Unescaped text, wrong arrow types):**
+```mermaid
+graph TD
+    A[Start process] --> B{Check status}
+    B --> C[Status: OK]
+    B --> D[Status: Error→Retry]
+```
+
+**Good (Proper syntax and escaping):**
+```mermaid
+flowchart TD
+    A["Start process"] --> B{"Check status"}
+    B --> C["Status: OK"]
+    B --> D["Status: Error #8594; Retry"]
+```
+
+**Benefits:**
+- Prevents syntax errors in Mermaid rendering
+- Ensures consistent styling across diagrams
+- Maintains readability with proper formatting
+- Works reliably across different Mermaid versions
+
+### Validation Checklist
+Before finalizing any Mermaid diagram, verify:
+- [ ] Correct diagram type declaration
+- [ ] All arrows use proper syntax
+- [ ] Special characters are escaped with quotes
+- [ ] All blocks (subgraph, loop, alt) are properly closed
+- [ ] Node shapes match intended meaning
+- [ ] Text labels are clear and properly formatted
+
+### When to Apply
+- Always use these rules when generating any Mermaid diagram
+- Apply to documentation, technical designs, and architecture diagrams
+- Ensure consistency across all project documentation
+- Use modern `flowchart` syntax instead of deprecated `graph` syntax

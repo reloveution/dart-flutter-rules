@@ -4,17 +4,27 @@ globs:
 alwaysApply: true
 ---
 
-## Dependency Injection Rules
+# Dependency Injection Rules
 
+## Service Location & Container
 - Use get_it for service location and dependency injection
 - Register dependencies in proper order (datasources → repositories → use cases → controllers)
+- Use proper dependency resolution order
+
+## Registration Patterns
 - Use factory registration for stateless services
 - Use singleton registration for stateful services that need to persist
+- Prefer instance-based singletons registered in get_it. Avoid static methods and proxy wrappers for backward compatibility. Use constructor injection exclusively.
+
+## Injection Patterns
 - Inject dependencies through constructors, not through service locator calls
 - Use abstract classes for interfaces, not concrete implementations
+
+## Dependency Management
 - Implement proper dependency lifecycle management
 - Use proper scoping for different types of dependencies
 - Avoid circular dependencies between services
-- Use proper dependency resolution order
+
+## Testing & Configuration
 - Implement proper dependency testing with mocks
 - Use proper dependency configuration for different environments

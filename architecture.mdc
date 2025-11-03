@@ -1,30 +1,37 @@
 ---
-description: "Clean architecture principles and design patterns. Covers Result<T> error handling, dependency injection, polymorphism over conditionals, and separation of concerns for scalable Flutter applications."
+description: "Clean Architecture principles and layer separation for Flutter applications. Covers Result<T> error handling, layer dependencies, polymorphism over conditionals, and proper separation of concerns."
 globs:
 alwaysApply: true
 ---
 
-## Architecture Rules
+# Architecture Rules
 
+## Architectural Guidelines
+- Design for extension and modification without breaking existing code.
+- Create loosely coupled, highly cohesive modules.
+- Implement proper separation of concerns at all levels.
+- Implement proper abstraction layers to hide implementation details.
+
+## Error Handling
 - Use Result<T> for all business logic error handling. Use runZonedGuarded for critical measurement operations. Use try/catch for additional protection within zones. This creates multi-level error protection for scientific data integrity.
 - All services, repositories, use cases, and controllers must communicate through Result<T> wrapper. Never throw exceptions in business logic.
+
+## Async Design
 - Write all methods in controllers, use cases, repositories, and datasources as Future from the start to avoid rewriting interfaces. Only keep truly synchronous operations synchronous.
+
+## Code Organization
 - Excessive if-else/switch-case logic indicates poor architecture and creates maintenance issues. Minimize conditional logic in favor of polymorphism and design patterns.
-- When suggesting code using design patterns, always explain the pattern and its benefits.
 - Use object methods or factories instead of multiple conditional statements.
-- Keep UI layer clean of business logic. UI should only display data and handle user interactions. Move calculations, validations, and business rules to controllers, use cases, or services.
 - Group related logic into separate methods and classes. Keep main classes focused on coordination rather than implementation details.
 - Implement proper separation between domain, data, and presentation layers
-- Use dependency injection containers (get_it) for service location
-- Implement proper error handling with specific error types instead of generic exceptions
-- Use factory constructors for complex object creation
-- Implement proper caching strategies for frequently accessed data
-- Use streams for real-time data updates instead of polling
 
-## Layer Dependencies Rules
+## Layer Boundaries
+- Keep UI layer clean of business logic. UI should only display data and handle user interactions. Move calculations, validations, and business rules to controllers, use cases, or services.
 
+# Layer Dependencies Rules
 - Repositories depend on DataSources/Services through constructor interfaces
 - Use Cases depend on Repositories through constructor interfaces  
 - Controllers depend on Use Cases through constructor interfaces
 - Use Cases can be shared across different feature controllers
 - Use Cases can depend on other Use Cases through constructor interfaces
+- Data parsing should be performed in the repository layer. DataSources should return raw data, repositories handle parsing and transformation.

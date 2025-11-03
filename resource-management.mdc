@@ -4,7 +4,7 @@ globs:
 alwaysApply: true
 ---
 
-## Resource Management Rules
+# Resource Management Rules
 
 - Use Timer instead of Future.delayed with mandatory cancellation in dispose/close. Timer must be nullable and cancelled before creating new instances and in cleanup methods.
 - Always dispose resources properly. Cancel subscriptions, close streams, and free memory in dispose methods. After cancelling subscriptions, always nullify the variable to prevent errors with non-null variables.

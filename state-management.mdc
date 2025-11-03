@@ -1,14 +1,28 @@
 ---
-description: "State management best practices for Flutter applications. Covers immutable state, serialization, persistence, and state synchronization patterns."
+description: "State management best practices and patterns for Flutter applications. Covers immutable state, serialization, persistence, BLoC patterns, and state synchronization."
 globs:
 alwaysApply: true
 ---
 
 ## State Management Rules
 
+### General State Management
 - Keep state immutable and use copyWith methods for updates
 - Implement proper state serialization for app lifecycle management
 - Use proper state hydration for app restoration
 - Implement proper state persistence for offline functionality
 - Use proper state synchronization between multiple instances
 - Implement proper state validation and sanitization
+- Avoid using global variables for state management
+- Use a single state management approach per widget
+
+### BLoC Pattern
+- Bloc events should be generated only through bloc methods, not directly from view. View should call bloc methods (e.g., loadData(), saveData()) that internally decide which events to add via add(). This ensures business logic encapsulation and simplifies testing.
+- Do not wrap emit() calls in try-catch blocks. The emit() method is already safe and handles errors internally. Adding try-catch around emit() is redundant and creates unnecessary complexity.
+
+### What Not to Do
+- Don't generate events directly from view - use bloc methods
+- Don't wrap emit() calls in try-catch
+- Don't mix BlocBuilder with setState in the same widget
+- Don't use setState inside BLoC/Cubit
+- Don't mix different state management approaches in the same widget

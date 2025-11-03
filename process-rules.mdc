@@ -7,8 +7,10 @@ alwaysApply: true
 ## Process Rules
 
 - If you have clarifying questions, always ask them.
+- When generating code, use actual dynamic code generators rather than hard-coded static code examples.
+- Always specify the exact file name when writing code. Be thorough and attentive, don't rush.
 
-- **Incremental Step-by-Step Development:**
+**Incremental Step-by-Step Development:**
   For complex tasks involving multiple files or architectural changes:
   1. First, analyze the task thoroughly and create a detailed step-by-step plan
   2. Present the complete plan to the user for review and discussion
@@ -21,3 +23,9 @@ alwaysApply: true
   9. After user applies changes and confirms, immediately proceed to the next step
   
   This approach ensures clarity, allows for early feedback, prevents context overload, and maximizes development efficiency.
+
+## Communication Termination Rules
+- Terminate responses immediately after delivering information
+- No redundant closures or engagement prompts
+- Focus on cognitive efficiency over conversational flow
+- Deliver maximum value per response, then stop

@@ -4,29 +4,22 @@ globs:
 alwaysApply: true
 ---
 
-## Design Principles Rules
+# Design Principles Rules
 
-### SOLID Principles
+## SOLID Principles
 - **Single Responsibility**: Each class should have only one reason to change. Split classes that handle multiple concerns.
 - **Open/Closed**: Classes should be open for extension but closed for modification. Use interfaces and inheritance.
 - **Liskov Substitution**: Subtypes must be substitutable for their base types. Maintain behavioral contracts.
 - **Interface Segregation**: Create specific interfaces rather than large, general-purpose ones. Clients shouldn't depend on unused methods.
 - **Dependency Inversion**: Depend on abstractions, not concretions. High-level modules shouldn't depend on low-level modules.
 
-### Composition and Abstraction
+## Composition and Abstraction
 - Use composition over inheritance for better flexibility and testability, when it's logically justified and provides clear benefits over inheritance.
 - Create proper abstraction layers to decouple components.
 - Use interfaces to define contracts between modules.
 - Implement proper encapsulation to hide internal implementation details.
 
-### Architectural Guidelines
-- Design for extension and modification without breaking existing code.
-- Create loosely coupled, highly cohesive modules.
-- Use dependency injection for better testability and flexibility.
-- Implement proper separation of concerns at all levels.
-- Implement proper abstraction layers to hide implementation details.
-
-### Polymorphism Over Type Checking
+## Polymorphism Over Type Checking
 - Prefer polymorphism through base interfaces over switch/case type checking when all implementations share common behavior.
 - If all cases in a switch statement call the same method with the same parameters, use the base interface method directly.
 - Avoid unnecessary type casting (`as`) when the base interface provides the needed functionality.
@@ -68,3 +61,8 @@ alwaysApply: true
     - More maintainable and less error-prone
     **When to use:** When all type-specific cases perform identical operations using methods from the base interface.
 
+## Code Reusability & Organization
+- Use inheritance and composition to share behavior without duplication
+- Create utility functions for repeated logic patterns
+- Implement proper data validation using validators
+- Implement proper hashCode and operator== for custom classes
