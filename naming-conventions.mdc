@@ -4,7 +4,7 @@ globs:
 alwaysApply: true
 ---
 
-## Naming Convention Rules
+# Naming Convention Rules
 
 - Prefix function names that are not called directly or called rarely with $ to hide them from autocomplete suggestions.
 - Use `I` prefix for interface classes (e.g., `IApiMagDecDts`, `IExportRepo`).

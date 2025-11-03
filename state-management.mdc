@@ -4,9 +4,9 @@ globs:
 alwaysApply: true
 ---
 
-## State Management Rules
+# State Management Rules
 
-### General State Management
+## General State Management
 - Keep state immutable and use copyWith methods for updates
 - Implement proper state serialization for app lifecycle management
 - Use proper state hydration for app restoration
@@ -16,11 +16,11 @@ alwaysApply: true
 - Avoid using global variables for state management
 - Use a single state management approach per widget
 
-### BLoC Pattern
+## BLoC Pattern
 - Bloc events should be generated only through bloc methods, not directly from view. View should call bloc methods (e.g., loadData(), saveData()) that internally decide which events to add via add(). This ensures business logic encapsulation and simplifies testing.
 - Do not wrap emit() calls in try-catch blocks. The emit() method is already safe and handles errors internally. Adding try-catch around emit() is redundant and creates unnecessary complexity.
 
-### What Not to Do
+## What Not to Do
 - Don't generate events directly from view - use bloc methods
 - Don't wrap emit() calls in try-catch
 - Don't mix BlocBuilder with setState in the same widget

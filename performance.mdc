@@ -4,7 +4,7 @@ globs:
 alwaysApply: true
 ---
 
-## Performance Rules
+# Performance Rules
 
 - Use ListView.builder for large lists instead of Column/Row with many children
 - Implement proper list item recycling with const constructors where possible

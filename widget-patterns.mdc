@@ -4,7 +4,7 @@ globs:
 alwaysApply: true
 ---
 
-## Widget Pattern Rules
+# Widget Pattern Rules
 
 - Avoid long methods and complex logic in build methods, onPressed callbacks, and similar UI handlers. Extract complex logic into separate methods.
 - Extract string concatenations into dedicated methods instead of inline operations.

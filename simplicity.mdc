@@ -4,7 +4,7 @@ globs:
 alwaysApply: true
 ---
 
-## Simplicity Rules
+# Simplicity Rules
 
 - Solve problems using the most direct and simple approach
 - Don't create complex operation chains where simple solutions exist

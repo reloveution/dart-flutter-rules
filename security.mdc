@@ -4,7 +4,7 @@ globs:
 alwaysApply: true
 ---
 
-## Security Rules
+# Security Rules
 
 - Never store sensitive data in SharedPreferences or plain text files
 - Use Flutter Secure Storage for API keys, tokens, and user credentials
