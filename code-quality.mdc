@@ -11,6 +11,10 @@ alwaysApply: true
 - Do not leave print or debugPrint statements in production code. Do not remove log() calls when cleaning print/debugPrint statements, as log() is used for structured logging.
 - Implement proper logging levels (debug, info, warning, error) instead of print statements
 - Do not add new comments in code. Only TODO comments in English are allowed. Do not modify existing comments.
+- Verify comment references are valid (check_comment_references)
+- Specify language for code blocks in documentation comments
+- Use TODO(username): format for TODO comments (if using TODO format)
+- Document reasons when ignoring linter rules (if rule ignores are used)
 - Implement proper toString() methods for debugging
 - Use assert statements for development-time checks
 - Logging Package: Use the `logging` package instead of `print` statements.
@@ -116,6 +120,12 @@ When building reusable APIs, such as a library, follow these principles:
 
 ## Strings & Localization
 - Extract all user-facing strings to localization files immediately. Do not hardcode strings in code.
+- Use single quotes for string literals (prefer_single_quotes)
+- Prefer string interpolation (`$variable`) over concatenation (`+` operator) for composing strings
+- Prefer adjacent string concatenation over `+` operator: `'text' 'more'` instead of `'text' + 'more'`
+- Avoid escaping inner quotes by using alternative quote types: `"text 'with' quotes"` instead of `'text \'with\' quotes'`
+- Avoid unnecessary string escapes in string literals
+- Avoid unnecessary string interpolations when the expression is already a string
 
 ## Async/Await
 - Always use async/await instead of .then() for asynchronous operations.
@@ -126,6 +136,10 @@ When building reusable APIs, such as a library, follow these principles:
   Bad: `Future<T> method() async { return await other(); }`
   Good: `Future<T> method() => other();`
   Use async/await only when processing results, handling errors, or performing additional operations.
+- Avoid unnecessary async keyword when await is not used in the function body
+- Avoid unnecessary await in return statements when returning a Future directly: `return future;` instead of `return await future;` (unless error handling is needed)
+- Always handle Future results explicitly. Use `unawaited()` for Futures that are intentionally fire-and-forget, never silently discard Futures
+- Mark intentionally unawaited futures with `unawaited()` to make the intent explicit
 
 ## Functions & Callbacks
 - Prefer arrow functions where applicable. Use arrow functions for single-expression functions and callbacks.
@@ -135,6 +149,8 @@ When building reusable APIs, such as a library, follow these principles:
 - Prefer named parameters for functions with more than 2 parameters
 - Use typedef for complex function signatures to improve readability
 - Use generic function type syntax in typedefs: typedef ImageProviderFunction<T> = ImageProvider Function(T item) instead of older syntax variants.
+- Prefer function declarations over function variables: `void function() {}` instead of `void Function() variable = () {}`
+- Avoid function literals in forEach calls when tear-offs are available: use `list.forEach(print)` instead of `list.forEach((x) => print(x))`
 - Function Length: Functions should be short and with a single purpose. Strive for less than 20 lines per function.
 
 ## Null Safety
@@ -143,6 +159,12 @@ When building reusable APIs, such as a library, follow these principles:
 - Use null-aware operators and avoid redundant null checks. Prefer ?. and ?? operators over explicit if-null checks. Use ?? operator instead of if-null blocks for simple value assignments. Remove redundant empty else blocks.
 - Always check for null data before using it. Use explicit null checks instead of force unwrapping with ! operator.
 - Implement proper null safety patterns throughout the codebase
+- Prefer `??` operator over `if (x == null) return y; return x;` pattern
+- Prefer `??=` operator over `if (x == null) x = y;` pattern for conditional assignment
+- Avoid unnecessary null checks in null-aware operators: use `x ?? defaultValue` not `x ?? null`
+- Avoid unnecessary null checks when the value is already known to be non-null
+- Use `if (x != null)` instead of `if (x)` for nullable types when converting to bool
+- Avoid null checks in equality operators - use null-aware operators instead
 
 ## Control Flow & Readability
 - Use single-line early returns instead of block statements for simple conditions.
@@ -154,6 +176,11 @@ When building reusable APIs, such as a library, follow these principles:
   Bad: `if (isValid == true) { }`, `final result = value == false ? a : b`
   Good: `if (isValid) { }`, `final result = value ? a : b`, `if (!isValid) { }`
   Exception: Nullable booleans (`bool?`) may require `== true` to distinguish between true, false, and null: `if (maybeTrue == true) { }` is different from `if (maybeTrue ?? false) { }`.
+- Avoid empty else blocks - remove them if not needed
+- Avoid empty statements (semicolons without code)
+- Use `.isEven` instead of `% 2 == 0` for checking even numbers
+- Avoid literal-only boolean expressions that evaluate to constants
+- Join return statements with assignments when possible: `return value = compute();`
 
 ## Performance
 - Avoid expensive operations in build methods.
@@ -163,6 +190,11 @@ When building reusable APIs, such as a library, follow these principles:
 ## Constructors & Initialization
 - Use late initialization for non-null variables that are initialized after construction
 - Use factory constructors for complex object creation
+- Prefer initializing formal parameters (`this.field`) instead of assignments in constructor body
+- Use super parameters when calling super constructors: `Child(this.field) : super(field: field);` becomes `Child(super.field);`
+- Place assert statements in initializer lists instead of constructor body when possible
+- Always provide messages in assert statements for better debugging
+- Use matching super parameters when overriding constructors
 
 ## Variables & Mutability
 - Prefer final variables over var when the value won't change
@@ -170,10 +202,19 @@ When building reusable APIs, such as a library, follow these principles:
   Bad: `int val = x; if (cond) { val = y; }`
   Good: `final int val = cond ? y : x;`
   For complex conditions, extract calculation into a separate method.
+- Prefer final parameters in function signatures unless mutation is required
+- Use final in for-in loops: `for (final item in list)`
+- Avoid explicit initialization to null: use `Type? variable;` instead of `Type? variable = null;`
 
-## Type Safety
+## Type Safety & Annotations
 - Avoid using dynamic type - use proper type annotations
 - Use sealed classes for state management instead of free classes when possible
+- Always declare return types explicitly for methods and functions
+- Prefer typing uninitialized variables explicitly instead of relying on type inference
+- Avoid types on closure parameters when they can be inferred from context
+- Never specify return type for setters (they always return void)
+- Avoid using types as parameter names
+- Avoid using `.runtimeType.toString()` - use pattern matching or type checks instead
 
 ## Data Processing
 - Use functional programming methods (map, where, fold) instead of imperative loops for data transformations.
@@ -192,12 +233,82 @@ When building reusable APIs, such as a library, follow these principles:
 ## Error Handling
 - Handle errors gracefully in UI. Show user-friendly messages, never expose technical details to users.
 - Implement proper error boundaries with fallback UI components
+- Use specific catch clauses with `on` keyword instead of generic catch: `catch (e) {}` → `on SpecificException catch (e) {}`
+- Never catch Error or its subclasses (like AssertionError), only catch Exception
+- Use `rethrow` instead of `throw e` to preserve stack trace when re-throwing exceptions
+- Avoid control flow in finally blocks - use try-catch properly
 
 ## Code Organization
 - Avoid deep nesting - extract methods when nesting exceeds 3 levels
 - Use meaningful variable names that describe their purpose
 - Follow DRY (Don't Repeat Yourself) principle - eliminate code duplication
 - Extract common functionality into reusable components
+- Avoid self-assignments (x = x)
+- Avoid wildcard variable uses - if you declare a variable, use it
+- Avoid unnecessary overrides - only override when behavior changes
+- Avoid unnecessary parentheses around expressions
+- Avoid unnecessary raw strings when regular strings work
+- Avoid unnecessary statements that don't affect program behavior
+- Avoid parameter assignments - parameters should be treated as final
+- Avoid returning null from void functions
+- Avoid returning `this` from methods (except for builder pattern)
+- Avoid setters without corresponding getters
+
+## Collections & Iterables
+- Use collection literals (`[]`, `{}`) instead of constructors (`List()`, `Map()`)
+- Prefer `.contains()` method over `.indexOf() != -1` for checking membership
+- Prefer `.isEmpty` and `.isNotEmpty` over `.length == 0` and `.length > 0`
+- Prefer `.forEach()` for simple iteration operations over for loops
+- Prefer for-in elements in collections over `map().toList()` pattern: `[for (var item in list) item * 2]` instead of `list.map((e) => e * 2).toList()`
+- Use `.whereType<T>()` for filtering collections by type instead of `.where((e) => e is T).cast<T>()`
+- Inline elements directly in collection literals instead of using `.add()` or `.addAll()` after creation
+- Use `StringBuffer` for building strings in loops instead of string concatenation
+
+## Formatting & Style
+- Always use trailing commas in multi-line parameter lists, function calls, and collections for better git diffs
+- Always add newline at end of file (eol_at_end_of_file)
+- Avoid lines longer than 80 characters - break them into multiple lines
+- Add leading newlines in multiline strings when appropriate for readability
+- Order combinators (show, hide) in imports consistently
+- Avoid unnecessary new keyword before constructors
+- Avoid unnecessary const keyword when it's redundant
+- Avoid unnecessary constructor names when default constructor works
+
+## Operators & Methods
+- Use cascade operators (..) for method chaining when appropriate
+- Use type casting methods (.cast<T>(), .as) when available for type conversions
+- Use setters to change properties instead of methods when appropriate
+- Avoid single cascade in expression statements - use regular method calls instead
+
+## Collections & Equality
+- Always override `hashCode` when overriding `==` operator (hash_and_equals)
+- Don't override `==` and `hashCode` in mutable classes - only in immutable classes
+- Use proper equality checks - avoid null checks in equality operators
+
+## Imports & Libraries
+- Prefer relative imports for files in the same directory structure (prefer_relative_imports)
+- Use package imports only when necessary or for external packages
+- Order combinators (show, hide) in imports consistently
+- Add library annotations when creating library files
+- Avoid dangling library doc comments without corresponding library declarations
+- Avoid using private types in public API
+- Avoid using deprecated members from the same package
+- Use consistent deprecated API versions
+
+## Switch & Pattern Matching
+- Ensure exhaustive cases in switch expressions (exhaustive_cases)
+- Avoid default cases in switch statements on enums when all cases are covered
+- Use valid case patterns in switch statements
+- Avoid duplicate case values in switch statements
+
+## Validation & Checks
+- Avoid recursive getters that can cause stack overflow
+- Avoid no-op operations on primitives (operations that don't change values)
+- Check conditional URI existence before using
+- Avoid null checks on nullable type parameters
+- Avoid null closures - provide actual implementations
+- Check for unrelated types in collection methods
+- Validate environment variable usage (do_not_use_environment)
 
 ## Testing
 - **Running Tests:** To run tests, use the `run_tests` tool if it is available, otherwise use `flutter test`.

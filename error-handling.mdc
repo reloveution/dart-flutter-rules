@@ -18,3 +18,9 @@ alwaysApply: true
 - Use Result<T> for all business operations, including synchronous ones, instead of throwing exceptions
 - Convert caught exceptions to Result<T> failures immediately
 - Result<T> can be used as a message wrapper for UI feedback (snackbars, dialogs) in addition to error handling.
+- Use specific catch clauses with `on` keyword instead of generic catch: `on SpecificException catch (e) {}`
+- Never catch Error or its subclasses (like AssertionError), only catch Exception
+- Use `rethrow` instead of `throw e` to preserve stack trace when re-throwing exceptions
+- Only throw Error and its subclasses, not Exception (for programming errors)
+- Avoid control flow in finally blocks - use try-catch properly
+- Close sinks (StreamController, IOSink) after use to prevent resource leaks

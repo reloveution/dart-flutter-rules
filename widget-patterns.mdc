@@ -14,20 +14,26 @@ alwaysApply: true
 - **Immutability:** Widgets (especially `StatelessWidget`) are immutable; when the UI needs to change, Flutter rebuilds the widget tree.
 - **Composition:** Prefer composing smaller widgets over extending existing ones. Use this to avoid deep widget nesting.
 - Create separate widgets instead of methods that return widgets. Avoid widget-returning methods in widget classes.
-- Never use Container widget. Decompose its properties into simple widgets when needed.
+- Never use Container widget. Use specific widgets instead:
+  - Use `SizedBox.shrink()` or `SizedBox.expand()` instead of empty Container
+  - Use `ColoredBox` instead of Container with only color property
+  - Use `DecoratedBox` instead of Container with only decoration property
+  - Combine widgets when multiple properties are needed
 - WidgetsBinding.instance.addPostFrameCallback should be used extremely rarely and only where it is truly necessary.
-- Always verify widget context exists before creating dialogs. Check context.mounted before accessing context-dependent operations to prevent 'context not found' errors.
+- Always verify widget context exists before creating dialogs. Check context.mounted before accessing context-dependent operations to prevent 'context not found' errors (use_build_context_synchronously).
 - Pass callback functions (events or controller methods) to reusable widgets instead of passing state managers directly.
 - When injecting controllers into context through providers, get controllers from DI. When accessing in widget tree, get controllers from context, not from DI.
 - In dialogs and context changes, pass controller methods instead of controllers themselves.
-- Use keys for widgets that need to maintain state across rebuilds
+- Use keys for widgets that need to maintain state across rebuilds (use_key_in_widget_constructors)
 - Use proper theme inheritance instead of hardcoded colors and styles
+- Use full hex values for Flutter colors (8 digits: AARRGGBB) instead of 6-digit hex
 - Implement responsive design with MediaQuery and LayoutBuilder
 - Implement proper loading states and error handling in UI components
 - Use RepaintBoundary for expensive custom painters
 - Use AnimatedBuilder for complex animations
 - Implement proper gesture handling with GestureDetector
 - Use proper focus management for form inputs
+- Avoid logic in createState() methods - keep them simple and focused
 - Use proper navigation patterns (GoRouter, AutoRouter, Navigator 2.0) instead of Navigator.push/pop. See navigation best practices for detailed examples.
 - Use proper form validation with FormField widgets
 - Implement proper keyboard handling and input actions
