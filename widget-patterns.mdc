@@ -39,6 +39,8 @@ alwaysApply: true
 - Implement proper keyboard handling and input actions
 - Use proper scroll physics for different content types
 - Implement proper image loading with error handling
+- Cancel subscriptions when leaving widgets or pages to prevent memory leaks (cancel_subscriptions)
+- Avoid web libraries in Flutter applications - use Flutter-specific alternatives (avoid_web_libraries_in_flutter)
 
 ## When the project uses GoRouter
 

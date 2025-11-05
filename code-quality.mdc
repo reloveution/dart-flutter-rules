@@ -53,6 +53,7 @@ linter:
     # avoid_print: false
     # prefer_single_quotes: true
 ```
+- Use HTTPS for URLs in pubspec.yaml (secure_pubspec_urls)
 
 ## Code Generation
 - **Build Runner:** If the project uses code generation, ensure that `build_runner` is listed as a dev dependency in `pubspec.yaml`.
@@ -109,6 +110,8 @@ dart run build_runner build --delete-conflicting-outputs
 - **Include code samples:** Where appropriate, add code samples to illustrate usage.
 - **Explain parameters, return values, and exceptions:** Use prose to describe what a function expects, what it returns, and what errors it might throw.
 - **Place doc comments before annotations:** Documentation should come before any metadata annotations.
+- Provide messages when using @deprecated annotation (provide_deprecation_message)
+- Describe all properties in Diagnosticable classes (diagnostic_describe_all_properties)
 
 ## API Design Principles
 When building reusable APIs, such as a library, follow these principles:
@@ -126,6 +129,8 @@ When building reusable APIs, such as a library, follow these principles:
 - Avoid escaping inner quotes by using alternative quote types: `"text 'with' quotes"` instead of `'text \'with\' quotes'`
 - Avoid unnecessary string escapes in string literals
 - Avoid unnecessary string interpolations when the expression is already a string
+- Avoid adjacent strings in lists - use a single string literal instead
+- Add whitespace between adjacent strings when concatenating
 
 ## Async/Await
 - Always use async/await instead of .then() for asynchronous operations.
@@ -140,6 +145,8 @@ When building reusable APIs, such as a library, follow these principles:
 - Avoid unnecessary await in return statements when returning a Future directly: `return future;` instead of `return await future;` (unless error handling is needed)
 - Always handle Future results explicitly. Use `unawaited()` for Futures that are intentionally fire-and-forget, never silently discard Futures
 - Mark intentionally unawaited futures with `unawaited()` to make the intent explicit
+- Avoid unnecessary unawaited() calls - only use when truly fire-and-forget
+- Avoid slow async I/O operations in critical sections (avoid_slow_async_io)
 
 ## Functions & Callbacks
 - Prefer arrow functions where applicable. Use arrow functions for single-expression functions and callbacks.
@@ -152,6 +159,9 @@ When building reusable APIs, such as a library, follow these principles:
 - Prefer function declarations over function variables: `void function() {}` instead of `void Function() variable = () {}`
 - Avoid function literals in forEach calls when tear-offs are available: use `list.forEach(print)` instead of `list.forEach((x) => print(x))`
 - Function Length: Functions should be short and with a single purpose. Strive for less than 20 lines per function.
+- Avoid positional boolean parameters - use named parameters instead (avoid_positional_boolean_parameters)
+- Avoid redundant argument values (e.g., true for boolean parameters) (avoid_redundant_argument_values)
+- Always put required named parameters before optional ones (always_put_required_named_parameters_first)
 
 ## Null Safety
 - Write code that is soundly null-safe. Leverage Dart's null safety features.
@@ -195,6 +205,8 @@ When building reusable APIs, such as a library, follow these principles:
 - Place assert statements in initializer lists instead of constructor body when possible
 - Always provide messages in assert statements for better debugging
 - Use matching super parameters when overriding constructors
+- Avoid field initializers in const classes (avoid_field_initializers_in_const_classes)
+- Avoid unused constructor parameters - remove them if not needed (avoid_unused_constructor_parameters)
 
 ## Variables & Mutability
 - Prefer final variables over var when the value won't change
@@ -215,6 +227,12 @@ When building reusable APIs, such as a library, follow these principles:
 - Never specify return type for setters (they always return void)
 - Avoid using types as parameter names
 - Avoid using `.runtimeType.toString()` - use pattern matching or type checks instead
+- Prefer integer literals instead of double literals when possible (prefer_int_literals)
+- Use void instead of Null for return types (prefer_void_to_null)
+- Add @redeclare annotation when redeclaring fields (annotate_redeclares)
+- Avoid using .toString() for types - use pattern matching or type checks instead (avoid_type_to_string)
+- Avoid shadowing type parameters in generic functions (avoid_shadowing_type_parameters)
+- Avoid private typedef for functions - prefer public or inline types (avoid_private_typedef_functions)
 
 ## Data Processing
 - Use functional programming methods (map, where, fold) instead of imperative loops for data transformations.
@@ -294,6 +312,10 @@ When building reusable APIs, such as a library, follow these principles:
 - Avoid using private types in public API
 - Avoid using deprecated members from the same package
 - Use consistent deprecated API versions
+- Use package prefix in library names (package_prefixed_library_names)
+- Avoid leading underscores in library prefixes (no_leading_underscores_for_library_prefixes)
+- Avoid leading underscores in local identifiers (no_leading_underscores_for_local_identifiers)
+- Add dependencies for all referenced packages (depend_on_referenced_packages)
 
 ## Switch & Pattern Matching
 - Ensure exhaustive cases in switch expressions (exhaustive_cases)
@@ -319,6 +341,7 @@ When building reusable APIs, such as a library, follow these principles:
 - **Testability:** Write code with testing in mind. Use the `file`, `process`, and `platform` packages, if appropriate, so you can inject in-memory and fake versions of the objects.
 - Design classes and functions to be easily testable by allowing dependency injection.
 - Keep business logic separate from framework-specific code to enable unit testing.
+- Use matchers for throws in tests instead of try-catch blocks (use_test_throws_matchers)
 
 ### Testing Best Practices
 - **Convention:** Follow the Arrange-Act-Assert (or Given-When-Then) pattern.
@@ -338,6 +361,7 @@ When building reusable APIs, such as a library, follow these principles:
 4. **Getters/Setters**
 5. **Lifecycle methods** (initState, dispose, etc.)
 6. **Override methods** (methods with @override annotation)
+   - Always use @override annotation when overriding methods (annotate_overrides)
 7. **Public methods**
 8. **Private methods**
 
