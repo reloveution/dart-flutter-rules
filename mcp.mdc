@@ -1,0 +1,658 @@
+---
+description: Rules for using the MCP (Multi-Context Processor) server for Dart/Flutter development, ML models, and web scraping.
+globs:
+alwaysApply: true
+---
+
+# MCP Servers Usage Rules
+
+## General Principles for Using MCP Servers
+
+- Always verify tool availability before use
+- Use the most appropriate server for the specific task
+- Use Firecrawl instead of standard web_search for web queries
+- Use Dart MCP server for all Dart/Flutter development tools
+- Use Hugging Face MCP for ML models, datasets, and research papers
+
+---
+
+## Dart MCP Server
+
+**Purpose:** Development tools for Dart/Flutter projects
+
+**When to use:**
+- Dart/Flutter code analysis
+- Code formatting
+- Running tests
+- Working with pub.dev (package search)
+- Connecting to Dart Tooling Daemon
+- Working with widgets in running application
+- Creating new projects
+
+**When NOT to use:**
+- For web search (use Firecrawl)
+
+**Commands by category:**
+
+### Project Management:
+- `mcp_dart_create_project` - create new Dart/Flutter project
+
+- `mcp_dart_add_roots` - add project root directories
+  - **Parameters:** `roots` - array of root objects with `uri` field
+  - **Format:** `[{uri: "file:///absolute/path/to/project", name: "optional-name"}]`
+  - **Important:** Must be called before using workspace-dependent commands
+  - **Example:** 
+    ```
+    mcp_dart_add_roots(roots: [{
+      uri: "file:///Users/username/project",
+      name: "My Project"
+    }])
+    ```
+
+- `mcp_dart_remove_roots` - remove root directories
+  - **Parameters:** `uris` - array of URI strings to remove
+  - **Example:** `mcp_dart_remove_roots(uris: ["file:///Users/username/project"])`
+
+- `mcp_dart_pub` - execute pub commands (`add`, `get`, `remove`, `upgrade`)
+  - **Parameters:**
+    - `command` - command (`add`, `get`, `remove`, `upgrade`)
+    - `packageName` - package name (required for `add` and `remove`)
+    - `roots` - array of project root directories (required)
+  - **Example:** `dart pub add bloc` → `mcp_dart_pub` with `command: add`, `packageName: bloc`, `roots: [{root: "file:///path/to/project"}]`
+
+- `mcp_dart_pub_dev_search` - search packages on pub.dev
+  - **Parameters:** `query` - search query
+  - **Supports:** special operators (`dependency:`, `topic:`, `publisher:`, etc.)
+
+### Code Analysis:
+- `mcp_dart_analyze_files` - analyze project for errors
+- `mcp_dart_dart_fix` - apply automatic fixes (`dart fix --apply`)
+  - **Parameters:** `roots` - array of project root directories (required)
+- `mcp_dart_dart_format` - format code (`dart format`)
+  - **Parameters:** 
+    - `roots` - array of project root directories (required)
+    - `paths` (optional) - array of specific paths to format
+
+### Symbol Search:
+- `mcp_dart_resolve_workspace_symbol` - search symbols in project (fuzzy search)
+- `mcp_dart_hover` - get information about symbol at cursor position
+- `mcp_dart_signature_help` - get function signature information
+
+### Working with Running Application (Dart Tooling Daemon):
+- `mcp_dart_connect_dart_tooling_daemon` - connect to DTD
+  - **Requires:** URI from user (suggest "Copy DTD Uri to clipboard")
+  - **Important:** Request new URI after connection loss
+
+- `mcp_dart_hot_reload` - hot reload Flutter application
+- `mcp_dart_get_runtime_errors` - get runtime errors
+- `mcp_dart_get_widget_tree` - get widget tree
+- `mcp_dart_get_selected_widget` - get selected widget
+- `mcp_dart_set_widget_selection_mode` - enable/disable widget selection mode
+- `mcp_dart_get_active_location` - get current cursor position
+
+- `mcp_dart_run_tests` - run tests
+  - **Parameters:**
+    - `roots` - array of project root directories (required)
+    - `paths` (optional) - array of paths to specific tests
+    - `testRunnerArgs` (optional) - additional options:
+      - `name` - filter by test name (substring or regex)
+      - `tags` - filter by tags
+      - `platform` - platform (`vm`, `chrome`, `firefox`, `node`, etc.)
+      - `timeout` - timeout for tests (e.g., `30s`)
+      - `concurrency` - number of concurrent tests (default 8)
+      - `fail-fast` - stop after first failure (boolean: true/false)
+      - `coverage` - directory for coverage report
+      - **Note:** Boolean parameters must be explicitly `true` or `false`
+      - **Note:** Parameters with hyphens (e.g., `fail-fast`) are passed as JSON strings
+
+**Priority:** High for all Dart/Flutter development tasks
+
+---
+
+## Firecrawl MCP Server
+
+**Purpose:** Web scraping and internet information search
+
+**When to use:**
+- Search for current internet information
+- Scrape content from web pages
+- Find documentation not available elsewhere
+- Get information about current events, technology updates
+- Search for code examples and problem solutions
+
+**When NOT to use:**
+- For searching symbols in project code (use Dart MCP)
+
+**Commands:**
+
+1. `mcp_firecrawl-mcp_firecrawl_search` - search the internet
+   - ⚠️ **CURRENTLY UNAVAILABLE** - Returns 503 error (Service Unavailable)
+   - **Parameters:**
+     - `query` - search query
+     - `limit` - number of results (default 5)
+     - `sources` - array of source objects with `type` field (e.g., `[{type: "web"}, {type: "images"}]`)
+       - **Important:** Must be array of objects, not strings
+       - Available types: `web`, `images`, `news`
+     - `scrapeOptions` - scraping options (optional)
+   - **Supports:** special operators (`site:`, `inurl:`, `intitle:`, etc.)
+   - **Workaround:** Use `map` to discover URLs, then `scrape` for content
+   - **Alternative:** Use `web_search` tool for general internet search
+
+2. `mcp_firecrawl-mcp_firecrawl_scrape` - scrape single page
+   - **Parameters:**
+     - `url` - page URL
+     - `formats` - formats (`markdown`, `html`, `screenshot`, etc.)
+     - `maxAge` - use cache (in milliseconds, for speed)
+     - `onlyMainContent` - main content only
+   - **Usage:** 
+     - For single page with known URL
+     - After search to get detailed content
+     - Use `maxAge` for speed (e.g., 172800000 for 2 days)
+
+3. `mcp_firecrawl-mcp_firecrawl_map` - get list of all URLs on site
+   - **Parameters:**
+     - `url` - site URL
+     - `limit` - URL count limit
+   - **Usage:** To discover site structure before scraping
+
+4. `mcp_firecrawl-mcp_firecrawl_crawl` - scrape multiple pages
+   - **Parameters:**
+     - `url` - starting URL (can use patterns like `https://example.com/blog/*`)
+     - `limit` - maximum number of pages
+     - `maxDiscoveryDepth` - crawl depth
+   - **Important:** Can be slow, use `map` + batch scraping for better control
+   - **Usage:** Only when full site coverage needed
+
+5. `mcp_firecrawl-mcp_firecrawl_check_crawl_status` - check crawl operation status
+   - **Parameters:** `id` - crawl operation ID
+   - **Usage:** After starting `crawl` to check progress
+
+6. `mcp_firecrawl-mcp_firecrawl_extract` - extract structured data
+   - **Parameters:**
+     - `urls` - array of URLs
+     - `prompt` - description of what to extract
+     - `schema` - JSON schema for structured data
+   - **Usage:** For extracting specific data (prices, names, descriptions)
+
+**Recommended workflow:**
+1. ⚠️ ~~For search: `firecrawl_search`~~ - CURRENTLY UNAVAILABLE
+   - **Use instead:** `web_search` tool or `firecrawl_map` + `firecrawl_scrape`
+2. For single page: directly `firecrawl_scrape`
+3. For site discovery: `firecrawl_map` → select needed URLs → `firecrawl_scrape` for each
+4. For structured data: `firecrawl_extract` with schema
+
+**Priority:** High for web scraping, moderate for web search (due to search unavailability)
+
+---
+
+## Hugging Face MCP Server
+
+**Purpose:** Access to Hugging Face Hub - ML models, datasets, research papers, Spaces, and documentation. Also includes AI image generation capabilities.
+
+**When to use:**
+- Searching for ML models, datasets, or research papers
+- Finding pre-trained models for specific tasks (text-generation, image-classification, etc.)
+- Discovering Hugging Face Spaces and applications
+- Accessing Hugging Face library documentation (transformers, diffusers, etc.)
+- Generating AI images (Flux 1 Schnell)
+- Getting model/dataset/space details and metadata
+
+**When NOT to use:**
+- For general web search (use Firecrawl or web_search)
+- For Dart/Flutter packages (use Dart MCP)
+
+**Commands by category:**
+
+### Model Discovery:
+- `mcp_hf-mcp-server_model_search` - search ML models on Hugging Face Hub
+  - **Parameters:**
+    - `query` - search term (or leave blank with sort/limit to get "Top 20 trending")
+    - `sort` - sort order: `trendingScore`, `downloads`, `likes`, `createdAt`, `lastModified`
+    - `limit` - max results (default 20, max 100)
+    - `author` - filter by organization/user (e.g., `google`, `meta-llama`, `microsoft`)
+    - `library` - filter by framework (e.g., `transformers`, `diffusers`, `timm`)
+    - `task` - filter by task type (e.g., `text-generation`, `image-classification`, `translation`)
+  - **Returns:** Model info including downloads, likes, tags, links
+  - **Example:** Search for trending image generation models from Stability AI
+
+### Dataset Discovery:
+- `mcp_hf-mcp-server_dataset_search` - search datasets on Hugging Face Hub
+  - **Parameters:**
+    - `query` - search term (or leave blank with sort/limit to get "Top 20 trending")
+    - `sort` - sort order: `trendingScore`, `downloads`, `likes`, `createdAt`, `lastModified`
+    - `limit` - max results (default 20, max 100)
+    - `author` - filter by organization/user (e.g., `google`, `facebook`, `allenai`)
+    - `tags` - filter tags (e.g., `['language:en', 'size_categories:1M<n<10M']`)
+  - **Returns:** Dataset info including downloads, likes, tags, links
+  - **Example:** Find English text classification datasets
+
+### Research Papers:
+- `mcp_hf-mcp-server_paper_search` - search ML research papers on HF Hub
+  - **Parameters:**
+    - `query` - semantic search query (3-200 chars)
+    - `results_limit` - number of results (default 12)
+    - `concise_only` - return 2-sentence summary only (default false)
+  - **Returns:** Papers with abstracts and links
+  - **Usage:** Use `concise_only: true` for broad searches with many results
+  - **Example:** Search for "transformer architecture improvements"
+
+### Spaces Discovery:
+- `mcp_hf-mcp-server_space_search` - find Hugging Face Spaces (ML applications)
+  - **Parameters:**
+    - `query` - semantic search query (1-100 chars)
+    - `limit` - number of results (default 10)
+    - `mcp` - filter only MCP Server enabled Spaces (default false)
+  - **Returns:** Spaces with descriptions and links
+  - **Example:** Find image editing Spaces
+
+### Repository Details:
+- `mcp_hf-mcp-server_hub_repo_details` - get detailed info about model/dataset/space
+  - **Parameters:**
+    - `repo_ids` - array of repo IDs in `author/name` format (max 10)
+    - `repo_type` - specify type or auto-detect: `model`, `dataset`, `space`
+  - **Returns:** Comprehensive repo information
+  - **Example:** Get details for `["openai/whisper-large-v3", "meta-llama/Llama-2-7b"]`
+
+### Documentation:
+- `mcp_hf-mcp-server_hf_doc_search` - search Hugging Face product documentation
+  - **Parameters:**
+    - `query` - search query (max 200 chars, empty for structure/navigation)
+    - `product` - filter by product name for focused results
+  - **Returns:** Documentation search results
+  - **Usage:** Start with empty query to discover structure
+  - **Important:** MUST consult for up-to-date HF library info
+
+- `mcp_hf-mcp-server_hf_doc_fetch` - fetch specific documentation page
+  - **Parameters:**
+    - `doc_url` - documentation URL (HF or Gradio)
+    - `offset` - token offset for large documents (default 0)
+  - **Returns:** Full documentation content
+  - **Usage:** Use offset for subsequent chunks of large docs
+
+### User Info:
+- `mcp_hf-mcp-server_hf_whoami` - get current authenticated user info
+  - **Parameters:** none
+  - **Returns:** Username and authentication status
+  - **Note:** Currently authenticated as `microgrampictures`
+
+### AI Image Generation:
+- `mcp_hf-mcp-server_gr1_flux1_schnell_infer` - generate images with Flux 1 Schnell
+  - **Parameters:**
+    - `prompt` - image description (max 60-70 words)
+    - `width` - image width (256-2048, default 1024)
+    - `height` - image height (256-2048, default 1024)
+    - `num_inference_steps` - steps (1-16, default 4)
+    - `seed` - random seed (0-2147483647)
+    - `randomize_seed` - randomize seed (default true)
+  - **Returns:** Generated image
+  - **Usage:** For quick AI image generation
+
+**Recommended workflow:**
+1. **Model/Dataset discovery:** Use filters (`author`, `task`, `library`) → `model_search` or `dataset_search`
+2. **Detailed info:** After finding models → `hub_repo_details` for complete specifications
+3. **Research papers:** Start with `concise_only: true` for broad topics → full abstracts for specific papers
+4. **Documentation:** `hf_doc_search` to find relevant pages → `hf_doc_fetch` for complete content
+5. **Image generation:** Use defaults (4 steps, 1024x1024) for speed → adjust only if quality insufficient
+
+**Priority:** Medium for ML model discovery, Low for general use
+
+---
+
+## Priority Guidelines
+
+### For Dart/Flutter Packages:
+1. **Dart MCP** (`pub_dev_search`) - ALWAYS use first for package search
+2. **Firecrawl** (`scrape`) - for additional context from pub.dev pages
+
+### For Documentation:
+1. **Dart MCP** (`pub_dev_search`) - for Dart/Flutter package documentation links
+2. **Firecrawl** (`scrape`) - for web documentation not available via other tools
+
+### For Web Search:
+1. **Firecrawl** (`scrape` + `map`) - use for targeted web scraping
+   - ⚠️ **WARNING:** `search` function currently unavailable (503 error)
+   - **Workaround:** Use `map` to discover URLs, then `scrape` specific pages
+2. **web_search** - use for general internet search
+
+### For Code Analysis:
+1. **Dart MCP** - for all Dart/Flutter analysis tasks
+
+### For Project Work:
+1. **Dart MCP** - for all development tasks
+
+### For ML/AI Tasks:
+1. **Hugging Face MCP** (`model_search`, `dataset_search`) - for ML models and datasets
+2. **Hugging Face MCP** (`paper_search`) - for ML research papers
+3. **Hugging Face MCP** (`hf_doc_search`) - for Hugging Face library documentation
+4. **Hugging Face MCP** (`gr1_flux1_schnell_infer`) - for AI image generation
+5. **Firecrawl** - for web scraping ML-related content not on HF Hub
+
+---
+
+## Usage Rules
+
+1. **Always verify availability:** Check tool availability before use
+2. **Use the right tool:** Don't use web search when specialized tool exists
+3. **Dart packages priority:** ALWAYS use Dart MCP `pub_dev_search` for Dart/Flutter packages
+4. **ML/AI priority:** ALWAYS use Hugging Face MCP for ML models, datasets, and research papers
+5. **Workspace setup:** Call `mcp_dart_add_roots` before using workspace-dependent Dart MCP commands
+6. **Optimize queries:** Use parameters to limit results (limit, tokens)
+7. **Caching:** Use `maxAge` in Firecrawl to speed up repeated requests
+8. **Sequence matters:** Follow correct call order (e.g., add_roots → analyze_files)
+9. **Error handling:** If tool unavailable, use alternative approach
+10. **Firecrawl search unavailable:** Use `web_search` or `map` + `scrape` instead
+11. **HF authentication:** Verify authentication status with `hf_whoami` if encountering permission errors
+
+---
+
+## Usage Examples
+
+### Getting Package Information and Documentation:
+
+**Task:** Get information about `flutter_bloc` package
+
+**Method 1: Using Dart MCP (RECOMMENDED)**
+1. `mcp_dart_pub_dev_search(query: "flutter_bloc")`
+   - Result: Complete package information including:
+     - Latest version, description
+     - Links to homepage, repository, documentation
+     - Pub points, likes, downloads
+     - Topics, licenses, publisher
+
+
+---
+
+### Searching Internet Information:
+
+**Task:** Find information about new Dart 3.4 features
+
+**Method 1: Using web_search (recommended while firecrawl_search unavailable)**
+1. `web_search(search_term: "Dart 3.4 new features release notes")`
+   - Result: list of relevant URLs with descriptions
+2. Select most relevant URL from results
+3. `mcp_firecrawl-mcp_firecrawl_scrape(url: "https://...", formats: ["markdown"], onlyMainContent: true)`
+
+**Method 2: Using Firecrawl map + scrape**
+1. `mcp_firecrawl-mcp_firecrawl_map(url: "https://dart.dev/", limit: 20)`
+   - Result: list of pages on dart.dev
+2. Find relevant URL (e.g., changelog, release notes)
+3. `mcp_firecrawl-mcp_firecrawl_scrape(url: "found_url", formats: ["markdown"], onlyMainContent: true)`
+
+---
+
+### Setting Up Project Workspace:
+
+**Task:** Add project roots for workspace-dependent commands
+
+**Steps:**
+1. `mcp_dart_add_roots(roots: [{uri: "file:///Users/username/my_flutter_project", name: "My App"}])`
+   - Result: project root added, workspace commands now available
+2. Verify roots are set (implicit in subsequent commands)
+3. Use workspace commands like `analyze_files`, `resolve_workspace_symbol`, etc.
+
+**To remove roots:**
+- `mcp_dart_remove_roots(uris: ["file:///Users/username/my_flutter_project"])`
+
+---
+
+### Analyzing Project Code:
+
+**Task:** Find and fix errors in project
+
+**Prerequisites:** Project roots must be added first via `mcp_dart_add_roots`
+
+**Steps:**
+1. `mcp_dart_add_roots(roots: [{uri: "file:///path/to/project"}])` - add project root
+2. `mcp_dart_analyze_files()` - analyze entire project
+   - Result: list of errors and warnings
+3. `mcp_dart_dart_fix(roots: [{root: "file:///path/to/project"}])` - automatic fixes
+4. `mcp_dart_dart_format(roots: [{root: "file:///path/to/project"}])` - format code
+
+---
+
+### Searching Package on pub.dev:
+
+**Task:** Find packages for state management
+
+**Steps:**
+1. `mcp_dart_pub_dev_search(query: "state management bloc")`
+   - Result: list of relevant packages with full details:
+     - Package name, version, description
+     - Homepage, repository, documentation links
+     - Scores (pub points, likes, downloads)
+     - Topics and licenses
+     - Publisher information
+
+**Special operators:**
+- `mcp_dart_pub_dev_search(query: "topic:state-management")` - search by topic
+- `mcp_dart_pub_dev_search(query: "publisher:flutter")` - search by publisher
+- `mcp_dart_pub_dev_search(query: "dependency:bloc")` - find packages depending on bloc
+
+---
+
+### Adding Dependency to Project:
+
+**Task:** Add `bloc` package to project
+
+**Steps:**
+1. `mcp_dart_pub(command: "add", packageName: "bloc", roots: [{root: "file:///path/to/project"}])`
+   - Result: package added to `pubspec.yaml` and installed
+
+---
+
+### Working with Running Flutter Application:
+
+**Task:** Get widget tree and perform hot reload
+
+**Steps:**
+1. `mcp_dart_connect_dart_tooling_daemon(uri: "dtd://...")` - connect (requires URI from user)
+2. `mcp_dart_get_widget_tree()` - get widget tree
+3. `mcp_dart_get_runtime_errors()` - check errors
+4. `mcp_dart_hot_reload()` - hot reload
+
+---
+
+### Extracting Structured Data from Web Page:
+
+**Task:** Extract product information from page
+
+**Steps:**
+1. `mcp_firecrawl-mcp_firecrawl_extract(
+     urls: ["https://example.com/products"],
+     prompt: "Extract name, price and description of each product",
+     schema: {
+       "type": "object",
+       "properties": {
+         "products": {
+           "type": "array",
+           "items": {
+             "type": "object",
+             "properties": {
+               "name": {"type": "string"},
+               "price": {"type": "number"},
+               "description": {"type": "string"}
+             }
+           }
+         }
+       }
+     }
+   )`
+
+---
+
+### Searching for ML Models:
+
+**Task:** Find trending text-to-image models from Stability AI
+
+**Steps:**
+1. `mcp_hf-mcp-server_model_search(
+     query: "text to image",
+     author: "stabilityai",
+     sort: "trendingScore",
+     limit: 10,
+     task: "text-to-image"
+   )`
+   - Result: List of models with download counts, likes, and links
+
+**Alternative - Get top trending models without specific query:**
+1. `mcp_hf-mcp-server_model_search(
+     sort: "trendingScore",
+     limit: 20
+   )`
+
+---
+
+### Searching for Datasets:
+
+**Task:** Find English text classification datasets
+
+**Steps:**
+1. `mcp_hf-mcp-server_dataset_search(
+     query: "sentiment classification",
+     tags: ["language:en", "task_categories:text-classification"],
+     sort: "downloads",
+     limit: 10
+   )`
+   - Result: Datasets with metadata, downloads, and links
+
+---
+
+### Finding ML Research Papers:
+
+**Task:** Search for papers about transformer improvements
+
+**Steps:**
+1. `mcp_hf-mcp-server_paper_search(
+     query: "transformer architecture improvements",
+     results_limit: 10,
+     concise_only: false
+   )`
+   - Result: Papers with full abstracts and links
+
+**For broad search:**
+1. `mcp_hf-mcp-server_paper_search(
+     query: "large language models",
+     results_limit: 20,
+     concise_only: true
+   )`
+   - Result: Papers with 2-sentence summaries (faster)
+
+---
+
+### Getting Model/Dataset Details:
+
+**Task:** Get detailed information about specific models
+
+**Steps:**
+1. `mcp_hf-mcp-server_hub_repo_details(
+     repo_ids: ["openai/whisper-large-v3", "meta-llama/Llama-2-7b-hf"],
+     repo_type: "model"
+   )`
+   - Result: Comprehensive info including versions, files, metadata
+
+---
+
+### Accessing Hugging Face Documentation:
+
+**Task:** Find documentation about transformers tokenizers
+
+**Steps:**
+1. `mcp_hf-mcp-server_hf_doc_search(
+     query: "tokenizer usage",
+     product: "transformers"
+   )`
+   - Result: Relevant documentation pages
+
+2. `mcp_hf-mcp-server_hf_doc_fetch(
+     doc_url: "https://huggingface.co/docs/transformers/main_classes/tokenizer"
+   )`
+   - Result: Full documentation content
+
+---
+
+### Generating AI Images:
+
+**Task:** Generate an image with Flux 1 Schnell
+
+**Steps:**
+1. `mcp_hf-mcp-server_gr1_flux1_schnell_infer(
+     prompt: "A serene landscape with mountains and a lake at sunset, photorealistic style",
+     width: 1024,
+     height: 1024,
+     num_inference_steps: 4,
+     randomize_seed: true
+   )`
+   - Result: Generated image
+
+---
+
+## Error Handling
+
+### Dart MCP:
+- If command fails, verify Dart SDK availability
+- For DTD commands: request new URI from user after connection loss
+- For analysis errors: use `dart_fix` for automatic corrections
+- If `pub` commands fail, verify network connectivity and pub.dev access
+
+### Firecrawl:
+- **Search 503 error:** `firecrawl_search` currently unavailable - use `web_search` or `map` + `scrape` instead
+- For scraping errors: try with `onlyMainContent: true`
+- For slow performance: use `maxAge` for caching
+- **Rate limits:** Be aware of API rate limits; space out requests if needed
+- For JavaScript-heavy sites: scraping may not capture dynamic content properly
+
+### Hugging Face MCP:
+- **Authentication errors:** Verify HF token is valid and has required permissions
+- **Model/dataset not found:** Check exact repo ID format (`author/name`)
+- **Rate limits:** HF API has rate limits; space out requests if hitting limits
+- **Documentation not found:** Try broader search query or check if documentation exists
+- **Image generation timeouts:** Flux model may take time; be patient or reduce image dimensions
+- **Repo type auto-detection:** If auto-detect fails, explicitly specify `repo_type` parameter
+
+---
+
+## Limitations and Limits
+
+### Firecrawl:
+- Search results limit: default 5, can increase with `limit` parameter
+- Crawl operations can be slow for large sites
+- Recommended to use `limit` and `maxDiscoveryDepth` for control
+- Rate limits apply based on API plan
+- May not work well with JavaScript-heavy single-page applications
+
+### Dart MCP:
+- DTD work requires running application
+- Some commands require project files
+- Large project analysis can take time
+- Requires active Dart/Flutter SDK installation
+
+### Hugging Face MCP:
+- **Model/dataset search:** Max 100 results per query (default 20)
+- **Paper search:** Max results depends on query (default 12)
+- **Repo details:** Max 10 repos per request
+- **Rate limits:** HF API has undocumented rate limits; aggressive usage may be throttled
+- **Image generation:** Limited to Flux 1 Schnell model (fast but lower quality than other Flux variants)
+- **Image dimensions:** 256-2048 pixels (default 1024x1024)
+- **Inference steps:** 1-16 steps for image generation (default 4, more steps = better quality but slower)
+- **Documentation fetch:** Large docs may require multiple fetches with `offset` parameter
+- **Authentication:** Requires valid HF token for some operations (currently authenticated as `microgrampictures`)
+
+---
+
+## Performance Recommendations
+
+1. **Use caching:** In Firecrawl use `maxAge` for repeated requests (e.g., 172800000 for 2 days)
+2. **Limit results:** Use `limit` and `tokens` to control response size and reduce processing time
+3. **Search optimization:** In Firecrawl first search without `formats`, then scrape needed pages
+5. **Parallel requests:** When possible, make independent requests in parallel
+6. **Batch operations:** For multiple files/tests, use batch operations instead of individual calls
+7. **Avoid over-fetching:** Request only what you need with appropriate limits
+8. **HF concise search:** For broad ML paper searches, use `concise_only: true` for faster results
+9. **HF batch repo details:** Get multiple model/dataset details in one call (max 10 repos)
+10. **HF image generation:** Use default settings (4 steps) for speed; increase steps only for higher quality
+11. **HF filter early:** Use `author`, `task`, `library` filters to narrow search results before querying
+
+8. **HF concise search:** For broad ML paper searches, use `concise_only: true` for faster results
+9. **HF batch repo details:** Get multiple model/dataset details in one call (max 10 repos)
+10. **HF image generation:** Use default settings (4 steps) for speed; increase steps only for higher quality
+11. **HF filter early:** Use `author`, `task`, `library` filters to narrow search results before querying
