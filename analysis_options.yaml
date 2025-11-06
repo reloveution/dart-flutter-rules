@@ -365,7 +365,7 @@ linter:
     deprecated_member_use_from_same_package: true
 
     # Рекомендует описывать все свойства в Diagnosticable классах.
-    diagnostic_describe_all_properties: true
+    diagnostic_describe_all_properties: false
 
     # Рекомендует избегать использования do_not_use_environment.
     do_not_use_environment: true
