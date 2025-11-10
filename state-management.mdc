@@ -18,8 +18,14 @@ alwaysApply: true
 - Use a single state management approach per widget
 
 ## BLoC Pattern
-- Bloc events should be generated only through bloc methods, not directly from view. View should call bloc methods (e.g., loadData(), saveData()) that internally decide which events to add via add(). This ensures business logic encapsulation and simplifies testing.
-- Do not wrap emit() calls in try-catch blocks. The emit() method is already safe and handles errors internally. Adding try-catch around emit() is redundant and creates unnecessary complexity.
+- Prefer triggering bloc changes by adding events from UI callbacks (for example: () => bloc.add(FormSubmitted(user))).
+- If a feature strictly requires public bloc methods as a facade, document that choice and keep event creation inside those methods only.
+- Do not wrap emit() calls in try-catch blocks. emit() is already safe; extra guards add noise without value.
+
+## Cubit Pattern
+- Interact with cubits via their public methods (for example: cubit.loadData()), keeping event classes out of the cubit layer.
+- Encapsulate business logic inside cubit methods; each method is responsible for emitting the correct state.
+- Avoid mixing bloc-style events into cubits to preserve clear separation between the patterns.
 
 ## What Not to Do
 - Don't generate events directly from view - use bloc methods
@@ -49,6 +55,17 @@ ValueListenableBuilder<int>(
   },
 );
 ```
+
+### ChangeNotifier Pattern
+- Place shared ChangeNotifier instances above all widgets that consume them so rebuilds propagate correctly without imperative UI mutations.
+- Keep mutable fields private inside the notifier and expose only getters or unmodifiable views for reading state.
+- Invoke notifyListeners() after each state mutation to trigger dependent widget rebuilds.
+- Scope ChangeNotifierProvider to the subtree that needs the model and rely on its automatic disposal when the subtree is removed.
+- Use Consumer<T> (with explicit generic type) around the smallest widget subtree that depends on notifier state, and keep unrelated children in the Consumer.child slot to avoid needless rebuilds.
+- Call Provider.of<T>(context, listen: false) for imperative actions that should not trigger widget rebuilds.
+- Compose multiple providers with MultiProvider when several models are required by the same subtree.
+- Structure widget trees to minimise rebuild cost: place Consumers deep in the tree, avoid wrapping large hierarchies when only a small portion depends on the notifier, and favour StatelessWidget where possible.
+- Write focused unit tests for ChangeNotifier classes to verify state transitions and emitted notifications independently of the UI.
 
 - **ChangeNotifier:** For state that is more complex or shared across multiple widgets, use `ChangeNotifier`.
 - **ListenableBuilder:** Use `ListenableBuilder` to listen to changes from a `ChangeNotifier` or other `Listenable`.

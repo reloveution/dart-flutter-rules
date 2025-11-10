@@ -1,0 +1,93 @@
+---
+description: "Dart 3 control-flow and pattern-matching reference: conditional branches, switch exhaustiveness, pattern destructuring, pattern operators, and records."
+globs:
+alwaysApply: true
+---
+
+## Dart 3 Updates
+
+### Branches
+1. Use `if` statements for conditional branching; conditions must evaluate to `bool`.
+2. Support optional `else` and `else if` clauses for multi-branch logic.
+3. Use `if-case` to match and destructure against a single pattern (e.g., `if (pair case [int x, int y]) { ... }`).
+4. When an `if-case` pattern matches, variables bound in the pattern are in scope for that branch.
+5. If an `if-case` pattern does not match, control continues to the `else` branch if it exists.
+6. Use `switch` statements to match a value against multiple patterns.
+7. A matching `case` executes its body and exits the `switch`; explicit `break` is unnecessary.
+8. Non-empty `case` clauses may end with `continue`, `throw`, or `return`.
+9. Use `default` or `_` in `switch` statements to handle unmatched values.
+10. An empty `case` falls through to the next `case`; use `break` to stop fallthrough.
+11. Use labeled `continue` for non-sequential fallthrough between cases.
+12. Use logical-or patterns (e.g., `case a || b`) to share a body or guard between cases.
+13. Use `switch` expressions for expression-based branching; omit `case`, use `=>`, and separate branches with commas.
+14. In `switch` expressions, the default branch uses `_`.
+15. Dart enforces exhaustiveness in `switch` statements and expressions at compile time.
+16. Ensure exhaustiveness via `_`/`default`, switching over enums, or using sealed types.
+17. Mark classes `sealed` to enable exhaustiveness checks when switching on their subtypes.
+18. Add guard clauses with `when` to further constrain a case (e.g., `case pattern when condition:`).
+19. Guards are evaluated after pattern matching in `if-case`, `switch` statements, and `switch` expressions.
+20. If a guard evaluates to `false`, execution proceeds to the next case.
+
+### Patterns
+1. Patterns describe shapes of values for matching and destructuring.
+2. Matching checks shape, constants, equality, or type.
+3. Destructuring extracts and binds parts of matched values.
+4. Patterns can nest with outer and inner subpatterns.
+5. Use `_` to ignore parts and rest elements to ignore remaining list items.
+6. Employ patterns in variable declarations/assignments, loops, `if-case`/`switch`, and collection literals.
+7. Pattern declarations start with `var` or `final` and bind new variables (e.g., `var (a, [b, c]) = ('str', [1, 2]);`).
+8. Pattern assignments destructure into existing variables (e.g., `(b, a) = (a, b);`).
+9. Every `switch` or `if-case` clause contains a pattern; any pattern kind is allowed.
+10. Case patterns are refutable; if matching fails, execution continues to the next case.
+11. Destructured bindings are scoped to the case body.
+12. Use logical-or patterns to match multiple alternatives in one case.
+13. Combine logical-or patterns with guards to share bodies or conditions.
+14. Guards (`when`) run after matching; `false` guards fall through.
+15. Use patterns in `for`/`for-in` loops to destructure elements (e.g., `for (final MapEntry(key: k, value: v) in map.entries)`).
+16. Object patterns match types and destructure via getters (e.g., `var Foo(:one, :two) = foo;`).
+17. Destructure records (positional or named) directly via patterns.
+18. Patterns enable algebraic data type–style code with sealed classes and exhaustive switches.
+19. Patterns simplify validation/destructuring of complex data (e.g., JSON) declaratively.
+20. Patterns offer concise alternatives to verbose type-checking/destructuring code.
+
+### Pattern Types
+1. Pattern precedence defines evaluation order; use parentheses to group.
+2. Logical-or (`p1 || p2`) matches if any branch matches, left-to-right, binding the same variables in each branch.
+3. Logical-and (`p1 && p2`) matches when both subpatterns match; variable names must not overlap.
+4. Relational patterns (`==`, `!=`, `<`, `>`, `<=`, `>=`) compare against constants; combine with logical-and for ranges.
+5. Cast patterns (`subpattern as Type`) assert/cast before matching; throw on mismatched types.
+6. Null-check patterns (`subpattern?`) match non-null values and bind as non-nullable.
+7. Null-assert patterns (`subpattern!`) require non-null values and throw otherwise.
+8. Constant patterns match equality to constants, including const constructors or collections.
+9. Variable patterns (`var name`, `final Type name`) bind new variables; typed patterns require matching types.
+10. Identifier patterns act as variable or constant patterns depending on context; `_` is always a wildcard.
+11. Parenthesized patterns control precedence without semantics changes.
+12. List patterns match lists by position; lengths must align unless using rest elements.
+13. Rest elements (`...`, `...rest`) allow arbitrary-length matches or capture remaining items.
+14. Map patterns match maps by key; missing keys throw `StateError`.
+15. Record patterns match records by shape; destructure positional and named fields.
+16. Object patterns match classes and destructure via getters; extra fields are ignored.
+17. Wildcard patterns (`_`, `Type _`) match without binding; useful for ignoring values or type assertions.
+18. All pattern types can nest and combine for expressive matching.
+
+### Records
+1. Records are immutable aggregates bundling multiple values.
+2. They are fixed-sized, heterogeneous, and strongly typed.
+3. Records are first-class: store, nest, pass, and collect them.
+4. Record expressions use parentheses with positional and/or named fields (e.g., `('first', a: 2)`).
+5. Record type annotations mirror expression syntax with positional/named field types.
+6. Named field names are part of the record’s type (shape).
+7. Positional field labels in type annotations are purely documentary.
+8. Access positional fields via `$1`, `$2`, etc.; named fields via their identifiers.
+9. Records are immutable; no setters.
+10. They use structural typing—shape defines the type.
+11. Two records are equal when shapes and field values match; named field order doesn’t matter.
+12. `hashCode` and `==` are auto-generated from structure and values.
+13. Use records to return multiple values; destructure with patterns.
+14. Destructure named fields via colon syntax (e.g., `final (:name, :age) = userInfo(json);`).
+15. Returning records is leaner and safer than classes/lists/maps for simple tuples.
+16. Lists of records work well for uniform tuples.
+17. Use `typedef` aliases for readability and reuse.
+18. Updating a record alias doesn’t guarantee downstream compatibility; only classes provide encapsulation.
+19. Extension types can wrap records but don’t offer full abstraction.
+20. Prefer records for simple immutable grouping; choose classes when abstraction or behavior is needed.

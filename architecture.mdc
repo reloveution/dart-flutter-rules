@@ -20,6 +20,9 @@ alwaysApply: true
   - Data (model classes, API clients)
   - Core (shared classes, utilities, and extension types)
 - **Feature-based Organization:** For larger projects, organize code by feature, where each feature has its own presentation, domain, and data subfolders. This improves navigability and scalability.
+- **Feature Folder Example:** Group every feature under its own folder (for example, `auth/` with `auth_bloc.dart`, `login_usecase.dart`, `login_screen.dart`, `logout_button.dart`) so presentation, domain, and data pieces stay co-located.
+- Allow communication only between adjacent layers; presentation never reaches data directly, and data must not depend on UI code.
+- Treat repositories as the single source of truth: they coordinate services/datasources and perform the only mutations, while view models/controllers consume read-only projections.
 
 ## Error Handling
 - Use Result<T> for all business logic error handling. Use runZonedGuarded for critical measurement operations. Use try/catch for additional protection within zones. This creates multi-level error protection for scientific data integrity.

@@ -1,0 +1,18 @@
+---
+description: "Mocktail testing guidelines: choosing fakes vs mocks, registering fallback values, stubbing async calls, interaction verification, and disciplined matcher usage."
+globs:
+alwaysApply: true
+---
+
+## Mocktail Rules
+1. Use Fake implementations when a lightweight, custom subset of behaviour suffices; reserve mocks for cases where you must verify interactions.
+2. Create mocks by extending Mock and never add manual overrides or concrete implementations to the subclass.
+3. Register fallback values (registerFallbackValue) for every non-nullable custom type you pass through argument matchers before stubbing or verifying.
+4. Stub synchronous methods with when(() => mock.method()).thenReturn(value) and use thenAnswer((invocation) => value) for dynamic responses; call thenThrow(error) for failure branches.
+5. For async APIs always return Future values via thenAnswer((_) async => result) or thenReturn(Future.value(result)) to keep signatures consistent.
+6. Verify interactions explicitly using verify(() => ...), verifyNever(() => ...), and verify(() => ...).called(n) to assert call counts when needed.
+7. Supply all named parameters in both stubs and verifies; use any(named: 'param') when the exact value is irrelevant.
+8. Use argument matchers such as any(), captureAny(), and captureThat() for flexible matching, and rely on any() for positional parameters you do not need to inspect.
+9. Prefer real collaborators or well-tested fakes whenever the test asserts on outcomes rather than interaction patterns.
+10. Stub every dependency method you expect to execute during the test to avoid unexpected MissingStub errors at runtime.
+11. Understand the string representation of the types you match so equals and toString-based assertions behave deterministically.

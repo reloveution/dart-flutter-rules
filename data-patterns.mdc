@@ -7,7 +7,7 @@ alwaysApply: true
 # Data Patterns Rules
 
 ## Data Flow
-
+- Repositories should operate as the single source of truth, reconciling local caches and remote services and exposing immutable data to consumers.
 - **Data Structures:** Define data structures (classes) to represent the data used in the application.
 - **Data Abstraction:** Abstract data sources (e.g., API calls, database operations) using Repositories/Services to promote testability.
 
@@ -26,6 +26,8 @@ alwaysApply: true
 
 ## Data Synchronization
 - Handle data synchronization between local and remote sources
+- Apply optimistic updates when latency allows, reconciling repository state with the final backend response.
+- Support offline-first behaviour by combining local persistence with remote synchronization inside repositories.
 
 ## Data Management
 - Implement proper data migration strategies

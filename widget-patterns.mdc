@@ -93,6 +93,14 @@ Navigator.pop(context);
 ## Layout Best Practices
 
 ### Building Flexible and Overflow-Safe Layouts
+### Common Flutter Errors
+- "RenderFlex overflowed": проверяй, не содержат ли Row/Column неограниченные дочерние виджеты; оборачивай элементы в Flexible или Expanded либо задавай явные ограничения.
+- "Vertical viewport was given unbounded height": если ListView/Scrollable внутри Column, обеспечь им ограничение по высоте (Expanded, SizedBox, SliverFillRemaining и т.п.).
+- "An InputDecorator...cannot have an unbounded width": ограничь ширину TextField и других InputDecorator через Expanded, SizedBox либо родитель с фиксированной шириной.
+- "setState called during build": не вызывай setState/showDialog напрямую в build; переносись в колбэки пользователя или отложи выполнение (например, через addPostFrameCallback при строгой необходимости).
+- "ScrollController attached to multiple scroll views": используй отдельный ScrollController на каждую прокручиваемую область либо отсоединяй перед повторным использованием.
+- "RenderBox was not laid out": найдя виджеты без ограничений (часто ListView/Column), задай им размеры или оберни в виджеты, передающие constraints.
+- При макетных сбоях включай Flutter Inspector и анализируй цепочку ограничений; при необходимости перечитай официальную документацию по layout constraints.
 
 #### For Rows and Columns
 

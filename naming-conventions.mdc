@@ -23,3 +23,4 @@ alwaysApply: true
 - File Naming: Use `snake_case` for file names (e.g., `user_service.dart`, `api_client.dart`).
 - Class Naming: Use `PascalCase` for classes (e.g., `UserService`, `ApiClient`).
 - Member/Variable/Function Naming: Use `camelCase` for members, variables, functions, and enums (e.g., `userName`, `fetchUserData()`).
+- Capitalize acronyms and abbreviations longer than two letters as words (e.g., `HttpClient`, `SqlRepository`, not `HTTPClient`).

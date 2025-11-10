@@ -82,7 +82,7 @@ dart run build_runner build --delete-conflicting-outputs
 - **API Documentation:** Add documentation comments to all public APIs, including classes, constructors, methods, and top-level functions.
 
 ## Documentation
-- **`dartdoc`:** Write `dartdoc`-style comments for all public APIs.
+<!-- - **`dartdoc`:** Write `dartdoc`-style comments for all public APIs. -->
 
 ### Documentation Philosophy
 - **Comment wisely:** Use comments to explain why the code is written a certain way, not what the code does. The code itself should be self-explanatory.
@@ -147,6 +147,7 @@ When building reusable APIs, such as a library, follow these principles:
 - Mark intentionally unawaited futures with `unawaited()` to make the intent explicit
 - Avoid unnecessary unawaited() calls - only use when truly fire-and-forget
 - Avoid slow async I/O operations in critical sections (avoid_slow_async_io)
+- Declare async members that do not yield a value as `Future<void>` to document intent.
 
 ## Functions & Callbacks
 - Prefer arrow functions where applicable. Use arrow functions for single-expression functions and callbacks.
@@ -233,6 +234,11 @@ When building reusable APIs, such as a library, follow these principles:
 - Avoid using .toString() for types - use pattern matching or type checks instead (avoid_type_to_string)
 - Avoid shadowing type parameters in generic functions (avoid_shadowing_type_parameters)
 - Avoid private typedef for functions - prefer public or inline types (avoid_private_typedef_functions)
+- Use class modifiers (`sealed`, `base`, `final`, `interface`, `abstract`, `mixin`) to make inheritance and implementation intent explicit.
+- Type annotate fields and top-level variables when the inferred type would not be immediately obvious.
+- Annotate parameter types on function declarations so that public APIs stay explicit.
+- Supply explicit type arguments on generic invocations whenever inference would fall back to `dynamic` or reduce clarity.
+- Prefer explicit generic command signatures on public APIs (e.g., use typed Command variants instead of `dynamic` callbacks) to keep intent and type-safety clear.
 
 ## Data Processing
 - Use functional programming methods (map, where, fold) instead of imperative loops for data transformations.
@@ -247,6 +253,7 @@ When building reusable APIs, such as a library, follow these principles:
 
 ## Constants & Magic Numbers
 - Avoid magic numbers. Use constants from AppConstants instead. Add new constants to AppConstants when needed.
+- Use descriptive constant names for persistent resources and identifiers (for example, `_todoTableName` instead of `_kTableTodo`) so migrations and diagnostics stay readable.
 
 ## Error Handling
 - Handle errors gracefully in UI. Show user-friendly messages, never expose technical details to users.
@@ -316,6 +323,8 @@ When building reusable APIs, such as a library, follow these principles:
 - Avoid leading underscores in library prefixes (no_leading_underscores_for_library_prefixes)
 - Avoid leading underscores in local identifiers (no_leading_underscores_for_local_identifiers)
 - Add dependencies for all referenced packages (depend_on_referenced_packages)
+- Never import libraries from another package’s `src` directory.
+- Keep package import paths inside `lib/`; avoid `/lib/` and `../` segments in import URIs.
 
 ## Switch & Pattern Matching
 - Ensure exhaustive cases in switch expressions (exhaustive_cases)
@@ -351,6 +360,10 @@ When building reusable APIs, such as a library, follow these principles:
 - **integration_test package:** Use the `integration_test` package from the Flutter SDK for integration tests. Add it as a `dev_dependency` in `pubspec.yaml` by specifying `sdk: flutter`.
 - **Mocks:** Prefer fakes or stubs over mocks. If mocks are absolutely necessary, use `mockito` or `mocktail` to create mocks for dependencies. While code generation is common for state management (e.g., with `freezed`), try to avoid it for mocks.
 - **Coverage:** Aim for high test coverage.
+- Ensure each test would fail if its production code regressed; avoid mocks that only reproduce fake behaviour.
+- Skip assertions that merely restate language guarantees or trivial library semantics; focus on logic that can break.
+- Wrap every test suite in group(), even for a single test, and name the group after the class or feature under test.
+- Name tests with “should …” phrasing so expectations are explicit (for example, test('counter should start at 0', () { ... })).
 
 ## Class Member Declaration Order
 

@@ -2,11 +2,13 @@ include: package:flutter_lints/flutter.yaml
 
 linter:
   rules:
+    curly_braces_in_flow_control_structures: false
+
     # Предпочтительно использовать одинарные кавычки для строковых литералов.
     prefer_single_quotes: true
 
     # Требовать запятые в конце строк там, где это применимо (в списках параметров и т. д.).
-    require_trailing_commas: true
+    require_trailing_commas: false
 
     # Предпочтительно использовать конструкторы const, где это возможно.
     prefer_const_constructors: true
@@ -257,8 +259,9 @@ linter:
     # Рекомендует закрывать StreamController и IOSink после использования.
     close_sinks: true
 
+    # ???
     # Рекомендует обрабатывать все возвращаемые Future, чтобы не пропускать ошибки.
-    discarded_futures: true
+    discarded_futures: false
 
     # Рекомендует явно помечать Future, которые не ожидаются, используя unawaited().
     unawaited_futures: true
