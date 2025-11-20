@@ -1,3 +1,9 @@
+---
+description: "Firebase Storage operational guidance for Flutter: setup, secured access, upload/download patterns, metadata, error handling, and performance hygiene."
+globs:
+alwaysApply: true
+---
+
 # Firebase Storage Rules
 
 ### Setup and Configuration

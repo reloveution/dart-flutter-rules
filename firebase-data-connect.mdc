@@ -1,3 +1,9 @@
+---
+description: "Firebase Data Connect usage principles covering schema planning, platform support, access control, caching, and resilience strategies for Flutter clients."
+globs:
+alwaysApply: true
+---
+
 # Firebase Data Connect Rules
 
 ### Setup and Configuration

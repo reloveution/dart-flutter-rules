@@ -1,3 +1,9 @@
+---
+description: "Firebase In-App Messaging configuration, trigger control, privacy opt-ins, testing workflows, and campaign governance for Flutter experiences."
+globs:
+alwaysApply: true
+---
+
 # Firebase In-App Messaging Rules
 
 ### Setup and Configuration

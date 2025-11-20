@@ -1,3 +1,9 @@
+---
+description: "Firebase Cloud Functions client integration rules: setup, callable invocation patterns, error handling, performance tuning, and testing practices for Flutter."
+globs:
+alwaysApply: true
+---
+
 # Firebase Cloud Functions Rules
 
 ### Setup and Configuration

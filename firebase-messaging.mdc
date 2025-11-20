@@ -1,3 +1,9 @@
+---
+description: "Firebase Cloud Messaging client rules addressing platform bootstrapping, handlers, permission flow, token lifecycle, and auto-init governance in Flutter."
+globs:
+alwaysApply: true
+---
+
 # Firebase Cloud Messaging Rules
 
 ### Setup and Configuration

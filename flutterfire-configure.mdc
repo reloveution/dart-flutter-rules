@@ -1,3 +1,9 @@
+---
+description: "FlutterFire CLI onboarding instructions covering Firebase project setup, configuration regeneration, multi-flavor workflows, and initialization sequencing."
+globs:
+alwaysApply: true
+---
+
 # How to Setup Firebase for Flutter
 
 ### Setup and Installation

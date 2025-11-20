@@ -1,3 +1,9 @@
+---
+description: "Firebase Realtime Database best practices including data modeling, indexing, transactional writes, offline sync, and rule design for Flutter integrations."
+globs:
+alwaysApply: true
+---
+
 # Firebase Realtime Database Rules
 
 ### Database Selection

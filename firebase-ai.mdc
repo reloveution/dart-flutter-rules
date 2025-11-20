@@ -1,3 +1,9 @@
+---
+description: "Firebase AI integration guidance covering setup, platform coverage, privacy-aware usage, quota handling, and failure recovery patterns for Flutter."
+globs:
+alwaysApply: true
+---
+
 # Firebase AI (Vertex AI in Firebase) Rules
 
 ### Setup and Configuration

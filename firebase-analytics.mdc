@@ -1,3 +1,9 @@
+---
+description: "Firebase Analytics instrumentation rules for Flutter apps: setup, event logging conventions, parameter hygiene, user properties, and validation workflows."
+globs:
+alwaysApply: true
+---
+
 # Firebase Analytics Rules
 
 ### Setup and Configuration

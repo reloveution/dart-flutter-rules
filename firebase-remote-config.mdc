@@ -1,3 +1,9 @@
+---
+description: "Firebase Remote Config integration checklist spanning initialization, defaults, fetch/activate cadence, real-time updates, throttling, and experimentation."
+globs:
+alwaysApply: true
+---
+
 # Firebase Remote Config Rules
 
 ### Setup and Configuration

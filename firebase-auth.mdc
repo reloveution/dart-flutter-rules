@@ -1,3 +1,9 @@
+---
+description: "Firebase Authentication usage standards spanning initialization, state handling streams, email/social flows, multi-factor security, and error management in Flutter."
+globs:
+alwaysApply: true
+---
+
 # Firebase Authentication Rules
 
 ### Setup and Configuration

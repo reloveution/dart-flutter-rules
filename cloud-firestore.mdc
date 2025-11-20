@@ -1,3 +1,9 @@
+---
+description: "Cloud Firestore usage guidelines covering setup, data modeling, indexing, performance, security, and real-time listeners for scalable Flutter apps."
+globs:
+alwaysApply: true
+---
+
 # Cloud Firestore Rules
 
 ### Database Selection

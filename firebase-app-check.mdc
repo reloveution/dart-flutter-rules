@@ -1,3 +1,9 @@
+---
+description: "Firebase App Check enablement instructions detailing provider selection, activation timing, enforcement rollout, and secure debugging practices for Flutter."
+globs:
+alwaysApply: true
+---
+
 # Firebase App Check Rules
 
 ### Setup and Configuration

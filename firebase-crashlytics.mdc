@@ -1,3 +1,9 @@
+---
+description: "Firebase Crashlytics setup, error pipeline wiring, custom telemetry, rate-aware reporting, and verification routines tailored for production Flutter apps."
+globs:
+alwaysApply: true
+---
+
 # Firebase Crashlytics Rules
 
 ### Setup and Configuration
