@@ -118,8 +118,9 @@ linter:
     # Рекомендует использовать .to() и .as() методы, когда они доступны.
     use_to_and_as_if_applicable: true
 
+    # Пока полностью закомментирую правило, т.к. создает лишний виз. шум.
     # Рекомендует использовать final для параметров.
-    prefer_final_parameters: true
+    # prefer_final_parameters: true
 
     # Рекомендует использовать null-aware операторы (?. ?? ??=).
     prefer_null_aware_operators: true
