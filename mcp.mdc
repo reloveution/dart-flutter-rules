@@ -123,6 +123,49 @@ alwaysApply: true
 **When NOT to use:**
 - For searching symbols in project code (use Dart MCP)
 
+**Installation & Configuration:**
+
+### Environment Variables
+
+#### Required for Cloud API:
+- `FIRECRAWL_API_KEY`: Your Firecrawl API key
+  - Required when using cloud API (default)
+  - Optional when using self-hosted instance with `FIRECRAWL_API_URL`
+- `FIRECRAWL_API_URL` (Optional): Custom API endpoint for self-hosted instances
+  - Example: `https://firecrawl.your-domain.com`
+  - If not provided, the cloud API will be used (requires API key)
+
+#### Optional Configuration:
+
+##### Retry Configuration:
+- `FIRECRAWL_RETRY_MAX_ATTEMPTS`: Maximum number of retry attempts (default: 3)
+- `FIRECRAWL_RETRY_INITIAL_DELAY`: Initial delay in milliseconds before first retry (default: 1000)
+- `FIRECRAWL_RETRY_MAX_DELAY`: Maximum delay in milliseconds between retries (default: 10000)
+- `FIRECRAWL_RETRY_BACKOFF_FACTOR`: Exponential backoff multiplier (default: 2)
+
+##### Credit Usage Monitoring:
+- `FIRECRAWL_CREDIT_WARNING_THRESHOLD`: Credit usage warning threshold (default: 1000)
+- `FIRECRAWL_CREDIT_CRITICAL_THRESHOLD`: Credit usage critical threshold (default: 100)
+
+### Streamable HTTP Mode
+
+To run the server using streamable HTTP transport locally instead of the default stdio transport:
+
+```bash
+env HTTP_STREAMABLE_SERVER=true FIRECRAWL_API_KEY=fc-YOUR_API_KEY npx -y firecrawl-mcp
+```
+
+Use the URL: `http://localhost:3000/v2/mcp` or `https://mcp.firecrawl.dev/{FIRECRAWL_API_KEY}/v2/mcp`
+
+### Self-Hosted Instances
+
+For self-hosted deployments, set `FIRECRAWL_API_URL` to your instance URL:
+
+```bash
+export FIRECRAWL_API_URL=https://firecrawl.your-domain.com
+export FIRECRAWL_API_KEY=your-api-key  # If your instance requires auth
+```
+
 **Commands:**
 
 1. `mcp_firecrawl-mcp_firecrawl_search` - search the internet
@@ -130,6 +173,11 @@ alwaysApply: true
    - **Parameters:**
      - `query` - search query
      - `limit` - number of results (default 5)
+     - `lang` - language code (e.g., "en", "ru")
+     - `country` - country code (e.g., "us", "ru")
+     - `tbs` - time-based search filter
+     - `filter` - filter results
+     - `location` - location object with `country` and `languages` array
      - `sources` - array of source objects with `type` field (e.g., `[{type: "web"}, {type: "images"}]`)
        - **Important:** Must be array of objects, not strings
        - Available types: `web`, `images`, `news`
@@ -140,46 +188,157 @@ alwaysApply: true
 
 2. `mcp_firecrawl-mcp_firecrawl_scrape` - scrape single page
    - **Parameters:**
-     - `url` - page URL
-     - `formats` - formats (`markdown`, `html`, `screenshot`, etc.)
-     - `maxAge` - use cache (in milliseconds, for speed)
-     - `onlyMainContent` - main content only
+     - `url` - page URL (required)
+     - `formats` - array of formats (`markdown`, `html`, `rawHtml`, `screenshot`, `links`, `summary`, `changeTracking`, `branding`)
+       - Can also use JSON format: `{type: "json", prompt: "...", schema: {...}}`
+       - Can use screenshot format: `{type: "screenshot", fullPage: boolean, quality: number, viewport: {width, height}}`
+     - `parsers` - array of parsers (e.g., `["pdf"]` or `[{type: "pdf", maxPages: 10}]`)
+     - `onlyMainContent` - main content only (boolean)
+     - `includeTags` - array of HTML tags to include (e.g., `["article", "main"]`)
+     - `excludeTags` - array of HTML tags to exclude (e.g., `["nav", "footer"]`)
+     - `waitFor` - wait time in milliseconds for page to load
+     - `timeout` - request timeout in milliseconds (default: 30000)
+     - `mobile` - use mobile user agent (boolean)
+     - `skipTlsVerification` - skip TLS certificate verification (boolean)
+     - `removeBase64Images` - remove base64 encoded images from output (boolean)
+     - `location` - location object with `country` and `languages` array
+     - `storeInCache` - store result in cache (boolean)
+     - `maxAge` - use cache if available (in milliseconds, for speed)
+     - `actions` - array of actions to perform (e.g., `[{type: "click", selector: "button"}]`)
+       - Available action types: `wait`, `screenshot`, `scroll`, `scrape`, `click`, `write`, `press`, `executeJavascript`, `generatePDF`
    - **Usage:** 
      - For single page with known URL
      - After search to get detailed content
      - Use `maxAge` for speed (e.g., 172800000 for 2 days)
+   - **Best for:** Single page content extraction, when you know exactly which page contains the information
+   - **Not recommended for:** Multiple pages (use batch_scrape), unknown page (use search), structured data (use extract)
 
-3. `mcp_firecrawl-mcp_firecrawl_map` - get list of all URLs on site
+3. `mcp_firecrawl-mcp_firecrawl_batch_scrape` - scrape multiple URLs efficiently
    - **Parameters:**
-     - `url` - site URL
-     - `limit` - URL count limit
-   - **Usage:** To discover site structure before scraping
+     - `urls` - array of URLs to scrape (required)
+     - `options` - scraping options object (same as `scrape` parameters)
+       - `formats` - array of formats
+       - `onlyMainContent` - main content only
+       - `waitFor` - wait time in milliseconds
+       - `timeout` - request timeout
+       - `mobile` - use mobile user agent
+       - `includeTags` - array of HTML tags to include
+       - `excludeTags` - array of HTML tags to exclude
+       - `skipTlsVerification` - skip TLS verification
+       - `removeBase64Images` - remove base64 images
+       - `location` - location object
+       - `storeInCache` - store in cache
+       - `maxAge` - use cache if available
+   - **Returns:** Operation ID for status checking
+   - **Usage:** Use `firecrawl_check_batch_status` to check progress
+   - **Best for:** Scraping multiple known URLs with built-in rate limiting and parallel processing
+   - **Performance:** Efficient parallel processing with automatic rate limit handling
 
-4. `mcp_firecrawl-mcp_firecrawl_crawl` - scrape multiple pages
+4. `mcp_firecrawl-mcp_firecrawl_check_batch_status` - check batch operation status
    - **Parameters:**
-     - `url` - starting URL (can use patterns like `https://example.com/blog/*`)
-     - `limit` - maximum number of pages
-     - `maxDiscoveryDepth` - crawl depth
-   - **Important:** Can be slow, use `map` + batch scraping for better control
-   - **Usage:** Only when full site coverage needed
+     - `id` - batch operation ID (required)
+   - **Returns:** Status and progress of the batch operation, including results if available
+   - **Usage:** After starting `batch_scrape` to check progress and retrieve results
 
-5. `mcp_firecrawl-mcp_firecrawl_check_crawl_status` - check crawl operation status
-   - **Parameters:** `id` - crawl operation ID
+5. `mcp_firecrawl-mcp_firecrawl_map` - get list of all URLs on site
+   - **Parameters:**
+     - `url` - site URL (required)
+     - `search` - optional search term to filter URLs
+     - `sitemap` - control sitemap usage: `"include"`, `"skip"`, or `"only"` (default: `"include"`)
+     - `includeSubdomains` - whether to include subdomains (boolean, default: false)
+     - `limit` - maximum number of URLs to return (default: 100)
+     - `ignoreQueryParameters` - whether to ignore query parameters when mapping (boolean, default: true)
+   - **Returns:** Array of URLs found on the site
+   - **Best for:** Discovering URLs on a website before deciding what to scrape; finding specific sections of a website
+   - **Not recommended for:** When you already know which specific URL you need (use scrape or batch_scrape); when you need the content of the pages (use scrape after mapping)
+
+6. `mcp_firecrawl-mcp_firecrawl_crawl` - start asynchronous crawl
+   - **Parameters:**
+     - `url` - starting URL (required, can use patterns like `https://example.com/blog/*`)
+     - `maxDiscoveryDepth` - maximum crawl depth (number)
+     - `limit` - maximum number of pages to crawl
+     - `allowExternalLinks` - allow crawling external links (boolean, default: false)
+     - `allowSubdomains` - allow crawling subdomains (boolean, default: false)
+     - `crawlEntireDomain` - crawl entire domain (boolean, default: false)
+     - `deduplicateSimilarURLs` - deduplicate similar URLs (boolean, default: true)
+     - `delay` - delay between requests in milliseconds
+     - `maxConcurrency` - maximum concurrent requests
+     - `webhook` - webhook URL or object with `url` and `headers` for notifications
+     - `ignoreQueryParameters` - ignore query parameters (boolean)
+     - `sitemap` - sitemap usage: `"skip"`, `"include"`, or `"only"`
+     - `excludePaths` - array of path patterns to exclude
+     - `includePaths` - array of path patterns to include
+     - `prompt` - prompt for LLM-based crawling decisions
+     - `scrapeOptions` - scraping options (same as `scrape` parameters)
+   - **Returns:** Operation ID for status checking
+   - **Best for:** Extracting content from multiple related pages, when you need comprehensive coverage
+   - **Not recommended for:** Extracting content from a single page (use scrape); when token limits are a concern (use map + batch_scrape); when you need fast results (crawling can be slow)
+   - **Warning:** Crawl responses can be very large and may exceed token limits. Limit the crawl depth and number of pages, or use map + batch_scrape for better control
+   - **Common mistakes:** Setting limit or maxDiscoveryDepth too high (causes token overflow) or too low (causes missing pages); using crawl for a single page (use scrape instead). Using a `/*` wildcard is not recommended.
+
+7. `mcp_firecrawl-mcp_firecrawl_check_crawl_status` - check crawl operation status
+   - **Parameters:**
+     - `id` - crawl operation ID (required)
+   - **Returns:** Status and progress of the crawl job, including results if available
    - **Usage:** After starting `crawl` to check progress
 
-6. `mcp_firecrawl-mcp_firecrawl_extract` - extract structured data
+8. `mcp_firecrawl-mcp_firecrawl_extract` - extract structured data
    - **Parameters:**
-     - `urls` - array of URLs
-     - `prompt` - description of what to extract
-     - `schema` - JSON schema for structured data
-   - **Usage:** For extracting specific data (prices, names, descriptions)
+     - `urls` - array of URLs to extract information from (required)
+     - `prompt` - custom prompt for the LLM extraction (required)
+     - `systemPrompt` - system prompt to guide the LLM (optional)
+     - `schema` - JSON schema for structured data extraction (optional)
+     - `allowExternalLinks` - allow extraction from external links (boolean, default: false)
+     - `enableWebSearch` - enable web search for additional context (boolean, default: false)
+     - `includeSubdomains` - include subdomains in extraction (boolean, default: false)
+   - **Returns:** Extracted structured data as defined by your schema
+   - **Best for:** Extracting specific structured data like prices, names, details from web pages
+   - **Not recommended for:** When you need the full content of a page (use scrape); when you're not looking for specific structured data
+   - **Note:** When using a self-hosted instance, the extraction will use your configured LLM. For cloud API, it uses Firecrawl's managed LLM service.
+
+**Rate Limiting and Batch Processing:**
+
+The server utilizes Firecrawl's built-in rate limiting and batch processing capabilities:
+- Automatic rate limit handling with exponential backoff
+- Efficient parallel processing for batch operations
+- Smart request queuing and throttling
+- Automatic retries for transient errors
+
+**Logging System:**
+
+The server includes comprehensive logging:
+- Operation status and progress
+- Performance metrics
+- Credit usage monitoring
+- Rate limit tracking
+- Error conditions
+
+Example log messages:
+```
+[INFO] Firecrawl MCP Server initialized successfully
+[INFO] Starting scrape for URL: https://example.com
+[INFO] Batch operation queued with ID: batch_1
+[WARNING] Credit usage has reached warning threshold
+[ERROR] Rate limit exceeded, retrying in 2s...
+```
+
+**Error Handling:**
+
+The server provides robust error handling:
+- Automatic retries for transient errors
+- Rate limit handling with backoff
+- Detailed error messages
+- Credit usage warnings
+- Network resilience
 
 **Recommended workflow:**
 1. ⚠️ ~~For search: `firecrawl_search`~~ - CURRENTLY UNAVAILABLE
    - **Use instead:** `web_search` tool or `firecrawl_map` + `firecrawl_scrape`
 2. For single page: directly `firecrawl_scrape`
-3. For site discovery: `firecrawl_map` → select needed URLs → `firecrawl_scrape` for each
-4. For structured data: `firecrawl_extract` with schema
+3. For multiple known URLs: `firecrawl_batch_scrape` → `firecrawl_check_batch_status`
+4. For site discovery: `firecrawl_map` → select needed URLs → `firecrawl_scrape` or `firecrawl_batch_scrape` for each
+5. For structured data: `firecrawl_extract` with schema
+6. For comprehensive site coverage: `firecrawl_crawl` → `firecrawl_check_crawl_status` (use with caution due to token limits)
 
 **Priority:** High for web scraping, moderate for web search (due to search unavailability)
 
@@ -460,6 +619,7 @@ alwaysApply: true
 1. `mcp_firecrawl-mcp_firecrawl_extract(
      urls: ["https://example.com/products"],
      prompt: "Extract name, price and description of each product",
+     systemPrompt: "You are a helpful assistant that extracts product information",
      schema: {
        "type": "object",
        "properties": {
@@ -475,8 +635,35 @@ alwaysApply: true
            }
          }
        }
+     },
+     allowExternalLinks: false,
+     enableWebSearch: false,
+     includeSubdomains: false
+   )`
+
+---
+
+### Batch Scraping Multiple URLs:
+
+**Task:** Scrape multiple product pages efficiently
+
+**Steps:**
+1. `mcp_firecrawl-mcp_firecrawl_batch_scrape(
+     urls: [
+       "https://example.com/products/1",
+       "https://example.com/products/2",
+       "https://example.com/products/3"
+     ],
+     options: {
+       formats: ["markdown"],
+       onlyMainContent: true,
+       maxAge: 172800000
      }
    )`
+   - Result: Operation ID (e.g., "batch_1")
+
+2. `mcp_firecrawl-mcp_firecrawl_check_batch_status(id: "batch_1")`
+   - Result: Status and results of batch operation
 
 ---
 
@@ -598,8 +785,12 @@ alwaysApply: true
 - **Search 503 error:** `firecrawl_search` currently unavailable - use `web_search` or `map` + `scrape` instead
 - For scraping errors: try with `onlyMainContent: true`
 - For slow performance: use `maxAge` for caching
-- **Rate limits:** Be aware of API rate limits; space out requests if needed
+- **Rate limits:** Be aware of API rate limits; space out requests if needed. The server automatically handles rate limits with exponential backoff
 - For JavaScript-heavy sites: scraping may not capture dynamic content properly
+- **Batch operations:** Use `batch_scrape` for multiple URLs instead of individual `scrape` calls for better performance and rate limit handling
+- **Credit monitoring:** Server provides warnings at configured thresholds (default: warning at 1000 credits, critical at 100 credits)
+- **Retry behavior:** Automatic retries for transient errors with exponential backoff (default: 3 attempts, starting at 1s delay)
+- **Network resilience:** Server automatically retries failed requests due to rate limits or network issues
 
 ### Hugging Face MCP:
 - **Authentication errors:** Verify HF token is valid and has required permissions
@@ -647,6 +838,11 @@ alwaysApply: true
 5. **Parallel requests:** When possible, make independent requests in parallel
 6. **Batch operations:** For multiple files/tests, use batch operations instead of individual calls
 7. **Avoid over-fetching:** Request only what you need with appropriate limits
+8. **HF concise search:** For broad ML paper searches, use `concise_only: true` for faster results
+9. **HF batch repo details:** Get multiple model/dataset details in one call (max 10 repos)
+10. **HF image generation:** Use default settings (4 steps) for speed; increase steps only for higher quality
+11. **HF filter early:** Use `author`, `task`, `library` filters to narrow search results before querying
+
 8. **HF concise search:** For broad ML paper searches, use `concise_only: true` for faster results
 9. **HF batch repo details:** Get multiple model/dataset details in one call (max 10 repos)
 10. **HF image generation:** Use default settings (4 steps) for speed; increase steps only for higher quality
