@@ -23,4 +23,6 @@ alwaysApply: true
 - Use `rethrow` instead of `throw e` to preserve stack trace when re-throwing exceptions
 - Only throw Error and its subclasses, not Exception (for programming errors)
 - Avoid control flow in finally blocks - use try-catch properly
+- For displaying errors in UI, prefer SelectableText.rich with red color styling instead of SnackBars for better error visibility and user experience.
+- Handle empty states within the displaying screen, not through global error handlers.
 - Close sinks (StreamController, IOSink) after use to prevent resource leaks

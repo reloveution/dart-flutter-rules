@@ -13,7 +13,9 @@ alwaysApply: true
 - **Isolates:** Use `compute()` to run expensive calculations in a separate isolate to avoid blocking the UI thread, such as JSON parsing.
 - **Immutability:** Widgets (especially `StatelessWidget`) are immutable; when the UI needs to change, Flutter rebuilds the widget tree.
 - **Composition:** Prefer composing smaller widgets over extending existing ones. Use this to avoid deep widget nesting.
+- Avoid deeply nested widgets to improve readability, maintainability, and performance. Break down complex widget trees into smaller, reusable components. A flatter widget structure makes it easier to understand, modify, and manage state.
 - Create separate widgets instead of methods that return widgets. Avoid widget-returning methods in widget classes.
+- Structure widget files in the following order: exported widget, subwidgets, helpers, static content, types.
 - Never use Container widget. Use specific widgets instead:
   - Use `SizedBox.shrink()` or `SizedBox.expand()` instead of empty Container
   - Use `ColoredBox` instead of Container with only color property
@@ -35,6 +37,7 @@ alwaysApply: true
 - Use proper focus management for form inputs
 - Avoid logic in createState() methods - keep them simple and focused
 - Use proper navigation patterns (GoRouter, AutoRouter, Navigator 2.0) instead of Navigator.push/pop. See navigation best practices for detailed examples.
+- Implement RefreshIndicator for pull-to-refresh functionality in scrollable lists.
 - Use proper form validation with FormField widgets
 - Implement proper keyboard handling and input actions
 - Use proper scroll physics for different content types
@@ -164,7 +167,7 @@ class _MyDropdownState extends State<MyDropdown> {
 - **UI Design:** Build beautiful and intuitive user interfaces that follow modern design guidelines.
 - **Responsiveness:** Ensure the app is mobile responsive and adapts to different screen sizes, working perfectly on mobile and web. Use `LayoutBuilder` or `MediaQuery` to create responsive UIs.
 - **Text:** Use `Theme.of(context).textTheme` for text styles.
-- **Text Fields:** Configure `textCapitalization`, `keyboardType`, and other input properties appropriately for the input type.
+- In TextFields, always set appropriate textCapitalization, keyboardType, and textInputAction properties based on the input type and expected user behavior.
 - **Navigation:** If there are multiple pages for the user to interact with, provide an intuitive and easy navigation bar or controls.
 - **Typography:** Stress and emphasize font sizes to ease understanding, e.g., hero text, section headlines, list headlines, keywords in paragraphs.
 - **Background:** Apply subtle noise texture to the main background to add a premium, tactile feel.

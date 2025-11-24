@@ -19,3 +19,8 @@ alwaysApply: true
 - When the application has a very large number of providers, consider incremental mounting (for example, during splash flows) or alternative composition to avoid deep MultiProvider stacks.
 - Migrate ValueListenableProvider usage by combining ValueListenableBuilder with Provider.value when only a listenable value must be exposed.
 - For tests, ensure provider wiring is shallow and focused; prefer injecting mock/fake dependencies through providers configured per test case.
+- Use AsyncValue for proper error handling and loading states in Riverpod providers.
+- Prefer AsyncNotifierProvider and NotifierProvider over StateProvider for better type safety and error handling.
+- Avoid StateProvider, StateNotifierProvider, and ChangeNotifierProvider when AsyncNotifierProvider is available.
+- Use ref.invalidate() for manually triggering provider updates when needed.
+- Implement proper cancellation of asynchronous operations when widgets are disposed to prevent memory leaks.

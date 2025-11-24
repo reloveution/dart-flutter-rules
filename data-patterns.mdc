@@ -16,6 +16,9 @@ alwaysApply: true
 - Implement proper JSON serialization with fromJson/toJson
 - Use data classes with copyWith methods for immutable data
 - Implement proper data validation at boundaries
+- Use @JsonSerializable(fieldRename: FieldRename.snake) for models to ensure consistent database field naming.
+- Implement @JsonKey(includeFromJson: true, includeToJson: false) for read-only fields that should not be serialized back to JSON.
+- Use @JsonValue(int) for enums that are stored in the database to ensure type-safe enum serialization.
 
 ## Real-time & Streaming
 - Use streams for real-time data updates
@@ -32,6 +35,7 @@ alwaysApply: true
 ## Data Management
 - Implement proper data migration strategies
 - Use proper data modeling for complex relationships
+- Include createdAt, updatedAt, and isDeleted fields in database tables/documents for proper data lifecycle management and soft deletion support.
 - Implement data compression for large payloads
 
 ## Security & Reliability

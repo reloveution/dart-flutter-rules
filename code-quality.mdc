@@ -79,6 +79,7 @@ dart run build_runner build --delete-conflicting-outputs
 ## Code Organization & Documentation
 - **Class Organization:** Define related classes within the same library file. For large libraries, export smaller, private libraries from a single top-level library.
 - **Library Organization:** Group related libraries in the same folder.
+- Don't leave blank lines within a function body; use blank lines only between logical sections of code (between methods, classes, etc.).
 - **API Documentation:** Add documentation comments to all public APIs, including classes, constructors, methods, and top-level functions.
 
 ## Documentation
@@ -160,6 +161,13 @@ When building reusable APIs, such as a library, follow these principles:
 - Prefer function declarations over function variables: `void function() {}` instead of `void Function() variable = () {}`
 - Avoid function literals in forEach calls when tear-offs are available: use `list.forEach(print)` instead of `list.forEach((x) => print(x))`
 - Function Length: Functions should be short and with a single purpose. Strive for less than 20 lines per function.
+- Keep functions under 20 instructions per function for better readability and maintainability.
+- Use arrow functions for simple functions (less than 3 instructions); use named functions for complex logic.
+- Implement early returns and guard clauses to reduce nesting and improve readability.
+- Use higher-order functions (map, filter, reduce, fold) to avoid imperative loops and function nesting.
+- Prefer default parameter values instead of checking for null or undefined.
+- Use RO-RO pattern (Receive Object, Return Object) for functions with multiple parameters: pass an object for input and return an object for results.
+- Maintain a single level of abstraction within each function.
 - Avoid positional boolean parameters - use named parameters instead (avoid_positional_boolean_parameters)
 - Avoid redundant argument values (e.g., true for boolean parameters) (avoid_redundant_argument_values)
 - Always put required named parameters before optional ones (always_put_required_named_parameters_first)
@@ -195,7 +203,7 @@ When building reusable APIs, such as a library, follow these principles:
 
 ## Performance
 - Avoid expensive operations in build methods.
-- Use const constructors everywhere possible for performance optimization. Apply to UI widgets when data is static, not to business logic methods.
+- Use const constructors everywhere possible for performance optimization. Apply to UI widgets when data is static, not to business logic methods. Use const for immutable objects and literals that don't change.
 - Use const constructors for immutable objects
 
 ## Constructors & Initialization
@@ -386,3 +394,7 @@ When building reusable APIs, such as a library, follow these principles:
 - Add empty lines between logical groups of methods
 - Group related methods together
 - Follow single responsibility principle
+- Keep classes small and focused: aim for less than 200 instructions per class.
+- Limit public methods to less than 10 per class.
+- Limit properties to less than 10 per class.
+- Declare interfaces to define contracts between modules.
