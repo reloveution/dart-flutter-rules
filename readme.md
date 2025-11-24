@@ -4,4 +4,4 @@ Then, the official rules from the Dart/Flutter team were integrated https://docs
 
 After that, some points from the beautiful rules by Evanca were integrated https://github.com/evanca/flutter-ai-rules. *Everything related to Firebase and the moctail package has been integrated without changes - completely, and will be edited in the next iterations.
 
-At the moment, this is the main branch.
+A few lines from https://cursor.directory/rules/flutter
