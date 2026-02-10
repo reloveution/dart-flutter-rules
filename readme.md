@@ -5,3 +5,7 @@ Then, the official rules from the Dart/Flutter team were integrated https://docs
 After that, some points from the beautiful rules by Evanca were integrated https://github.com/evanca/flutter-ai-rules. *Everything related to Firebase and the moctail package has been integrated without changes - completely, and will be edited in the next iterations.
 
 A few lines from https://cursor.directory/rules/flutter
+
+Add Dart/Flutter Skills from https://github.com/MADTeacher/mad-agents-skills
+
+Adaptation of the initial set of rules into the skills system in order to make the behavior of the language model more predictable and manageable.
