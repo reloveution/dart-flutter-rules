@@ -1,0 +1,21 @@
+---
+description: "Provider state-management guidelines: provider family usage, scoped rebuild strategies, proxy providers, lifecycle caveats, and debugging practices."
+globs:
+alwaysApply: true
+---
+
+## Provider Rules
+- Use Provider, ChangeNotifierProvider, FutureProvider, and StreamProvider to expose values and manage state within the widget tree; scope each provider to the narrowest subtree that consumes it.
+- Always specify the generic type argument when using Provider, Consumer, context.watch, context.read, or context.select to retain static type-safety.
+- Prefer ChangeNotifierProvider (or ChangeNotifierProxyProvider) when the provided object needs automatic disposal by the widget tree.
+- Build objects that depend on other providers using ProxyProvider variants so dependencies refresh when upstream values change.
+- Group multiple providers with MultiProvider to avoid deeply nested provider declarations.
+- Use context.watch<T>() when the widget must rebuild in response to changes; use context.read<T>() for one-off actions without subscribing.
+- Use context.select<T, R>() or Selector/Consumer widgets to listen to specific slices of state and minimise rebuild scope; place Consumers as deep in the tree as practical.
+- Do not instantiate provider objects from external mutable variables; rely on the create/update callbacks so provider can rebuild with fresh dependencies.
+- If you need to obtain a provider outside build, rely on lifecycle-safe points (didChangeDependencies, callbacks) rather than constructors or initState.
+- Any object can be exposed as state; prefer Provider.value for existing instances managed by StatefulWidgets.
+- Register diagnostic information (toString, DiagnosticableTreeMixin) on provided objects to improve DevTools readability.
+- When the application has a very large number of providers, consider incremental mounting (for example, during splash flows) or alternative composition to avoid deep MultiProvider stacks.
+- Migrate ValueListenableProvider usage by combining ValueListenableBuilder with Provider.value when only a listenable value must be exposed.
+- For tests, ensure provider wiring is shallow and focused; prefer injecting mock/fake dependencies through providers configured per test case.
