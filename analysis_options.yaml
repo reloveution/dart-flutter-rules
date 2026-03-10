@@ -1,5 +1,13 @@
 include: package:flutter_lints/flutter.yaml
 
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "*.freezed.dart"
+    - "*.config.dart"
+    - "*.gr.dart"
+    - "temp/**"
+
 linter:
   rules:
     curly_braces_in_flow_control_structures: false
@@ -118,9 +126,9 @@ linter:
     # Рекомендует использовать .to() и .as() методы, когда они доступны.
     use_to_and_as_if_applicable: true
 
-    # Пока полностью закомментирую правило, т.к. создает лишний виз. шум.
+    # Потом, закомментировать правило совсем.
     # Рекомендует использовать final для параметров.
-    # prefer_final_parameters: true
+    # prefer_final_parameters: false
 
     # Рекомендует использовать null-aware операторы (?. ?? ??=).
     prefer_null_aware_operators: true
@@ -191,8 +199,9 @@ linter:
     # Рекомендует избегать избыточных имен конструкторов.
     unnecessary_constructor_name: true
 
+    # ??? to study, turned off before understanding, find TODO with the rule title
     # Рекомендует использовать tear-offs вместо лямбд, когда возможно.
-    unnecessary_lambdas: true
+    unnecessary_lambdas: false
 
     # Рекомендует избегать new перед конструкторами.
     unnecessary_new: true
@@ -265,7 +274,7 @@ linter:
     discarded_futures: false
 
     # Рекомендует явно помечать Future, которые не ожидаются, используя unawaited().
-    unawaited_futures: true
+    unawaited_futures: false
 
     # Рекомендует избегать пустых операторов (;).
     empty_statements: true
@@ -400,6 +409,7 @@ linter:
     # Рекомендует добавлять аннотации к библиотекам.
     library_annotations: true
 
+    # ???
     # Рекомендует избегать использования приватных типов в публичном API.
     library_private_types_in_public_api: true
 
@@ -484,9 +494,5 @@ linter:
     # Отменять подписки при выходе из виджета или страницы.
     cancel_subscriptions: true
 
-analyzer:
-  exclude:
-    - "**/*.g.dart"
-    - "*.freezed.dart"
-    - "*.config.dart"
-    - "*.gr.dart"
+    # Сортировка импортов.
+    directives_ordering: true

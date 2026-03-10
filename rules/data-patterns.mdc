@@ -1,42 +1,30 @@
 ---
-description: "Data handling patterns for Flutter applications. Covers data transformation, serialization, caching, layer separation, and data flow patterns."
+description: "Data handling patterns for Flutter applications. Covers data flow, serialization, caching, layer separation, synchronization, and DTO architecture."
 globs:
 alwaysApply: true
 ---
 
-# Data Patterns Rules
+# Data Patterns
 
-## Data Flow
-- Repositories should operate as the single source of truth, reconciling local caches and remote services and exposing immutable data to consumers.
-- **Data Structures:** Define data structures (classes) to represent the data used in the application.
-- **Data Abstraction:** Abstract data sources (e.g., API calls, database operations) using Repositories/Services to promote testability.
+## Data Flow & Architecture
+- Repositories: single source of truth — reconcile local cache + remote, expose immutable data
+- Abstract data sources (API, database) behind Repository/Service interfaces for testability
+- Domain entities have no knowledge of the database
+- DTOs encapsulate all mapping and JSON conversion logic; table definitions reference only DTOs, not converters
+- Use streams for real-time data updates
 
 ## Data Transfer & Serialization
 - Use DTOs for data transfer between layers
-- Implement proper JSON serialization with fromJson/toJson
-- Use data classes with copyWith methods for immutable data
-- Implement proper data validation at boundaries
+- `fromJson`/`toJson` for JSON serialization
+- Data classes with `copyWith` for immutable updates
+- Validate data at boundaries
 
-## Real-time & Streaming
-- Use streams for real-time data updates
+## Caching & Synchronization
+- Caching with TTL strategies; pagination for large datasets
+- Optimistic updates: apply locally, reconcile with backend response
+- Offline-first: combine local persistence with remote sync inside repositories
+- Data migration strategies for schema changes
 
-## Caching & Performance
-- Implement proper caching strategies with TTL
-- Use pagination for large datasets
-
-## Data Synchronization
-- Handle data synchronization between local and remote sources
-- Apply optimistic updates when latency allows, reconciling repository state with the final backend response.
-- Support offline-first behaviour by combining local persistence with remote synchronization inside repositories.
-
-## Data Management
-- Implement proper data migration strategies
-- Use proper data modeling for complex relationships
-- Implement data compression for large payloads
-
-## Security & Reliability
-- Use proper data encryption for sensitive information
-- Implement data backup and recovery mechanisms
-
-## Architecture Principles
-- Domain entities must have no knowledge of the database. DTO models encapsulate all mapping and JSON conversion logic. Table definitions should reference only DTOs, not converters.
+## Security
+- Encrypt sensitive data; backup and recovery mechanisms
+- Data compression for large payloads

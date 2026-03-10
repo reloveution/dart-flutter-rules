@@ -1,74 +1,31 @@
 ---
-description: "State management best practices and patterns for Flutter applications. Covers immutable state, serialization, persistence, BLoC patterns, and state synchronization."
+description: "State management patterns for Flutter applications. Covers BLoC, Cubit, and built-in state approaches."
 globs:
 alwaysApply: true
 ---
 
 # State Management Rules
 
-## General State Management
-- **State Separation:** Separate ephemeral state and app state. Use a state management solution for app state to handle the separation of concerns.
-- Keep state immutable and use copyWith methods for updates
-- Implement proper state serialization for app lifecycle management
-- Use proper state hydration for app restoration
-- Implement proper state persistence for offline functionality
-- Use proper state synchronization between multiple instances
-- Implement proper state validation and sanitization
-- Avoid using global variables for state management
-- Use a single state management approach per widget
+## General
+- Separate ephemeral (local) and app state
+- Keep state immutable; use `copyWith` for updates
+- No global variables for state
+- Single state management approach per widget
 
-## BLoC Pattern
-- Prefer triggering bloc changes by adding events from UI callbacks (for example: () => bloc.add(FormSubmitted(user))).
-- If a feature strictly requires public bloc methods as a facade, document that choice and keep event creation inside those methods only.
-- Do not wrap emit() calls in try-catch blocks. emit() is already safe; extra guards add noise without value.
+## BLoC
+- Trigger bloc changes via events from UI callbacks: `() => bloc.add(FormSubmitted(user))`
+- No `emit()` in try-catch
+- No `setState` inside BLoC/Cubit
+- No mixing `BlocBuilder` with `setState`
 
-## Cubit Pattern
-- Interact with cubits via their public methods (for example: cubit.loadData()), keeping event classes out of the cubit layer.
-- Encapsulate business logic inside cubit methods; each method is responsible for emitting the correct state.
-- Avoid mixing bloc-style events into cubits to preserve clear separation between the patterns.
+## Cubit
+- Interact via public methods: `cubit.loadData()`
+- Business logic inside cubit methods; each method emits correct state
+- No bloc-style events in cubits
 
-## What Not to Do
-- Don't generate events directly from view - use bloc methods
-- Don't wrap emit() calls in try-catch
-- Don't mix BlocBuilder with setState in the same widget
-- Don't use setState inside BLoC/Cubit
-- Don't mix different state management approaches in the same widget
-
-## Flutter Built-in State Management (Explicit Request Only)
-
-When simple state management is explicitly requested or for simple use cases:
-
-- **Built-in Solutions:** Use Flutter's built-in state management solutions for simple, local state. Do not use a third-party package unless explicitly requested.
-- **Streams:** Use `Stream`s and `StreamBuilder` for handling a sequence of asynchronous events.
-- **Futures:** Use `Future`s and `FutureBuilder` for handling a single asynchronous operation that will complete in the future.
-- **ValueNotifier:** Use `ValueNotifier` with `ValueListenableBuilder` for simple, local state that involves a single value.
-
-```dart
-// Define a ValueNotifier to hold the state.
-final ValueNotifier<int> _counter = ValueNotifier<int>(0);
-
-// Use ValueListenableBuilder to listen and rebuild.
-ValueListenableBuilder<int>(
-  valueListenable: _counter,
-  builder: (context, value, child) {
-    return Text('Count: $value');
-  },
-);
-```
-
-### ChangeNotifier Pattern
-- Place shared ChangeNotifier instances above all widgets that consume them so rebuilds propagate correctly without imperative UI mutations.
-- Keep mutable fields private inside the notifier and expose only getters or unmodifiable views for reading state.
-- Invoke notifyListeners() after each state mutation to trigger dependent widget rebuilds.
-- Scope ChangeNotifierProvider to the subtree that needs the model and rely on its automatic disposal when the subtree is removed.
-- Use Consumer<T> (with explicit generic type) around the smallest widget subtree that depends on notifier state, and keep unrelated children in the Consumer.child slot to avoid needless rebuilds.
-- Call Provider.of<T>(context, listen: false) for imperative actions that should not trigger widget rebuilds.
-- Compose multiple providers with MultiProvider when several models are required by the same subtree.
-- Structure widget trees to minimise rebuild cost: place Consumers deep in the tree, avoid wrapping large hierarchies when only a small portion depends on the notifier, and favour StatelessWidget where possible.
-- Write focused unit tests for ChangeNotifier classes to verify state transitions and emitted notifications independently of the UI.
-
-- **ChangeNotifier:** For state that is more complex or shared across multiple widgets, use `ChangeNotifier`.
-- **ListenableBuilder:** Use `ListenableBuilder` to listen to changes from a `ChangeNotifier` or other `Listenable`.
-- **MVVM:** When a more robust solution is needed, structure the app using the Model-View-ViewModel (MVVM) pattern.
-- **Dependency Injection:** Use simple manual constructor dependency injection to make a class's dependencies explicit in its API, and to manage dependencies between different layers of the application.
-- **Provider:** If a dependency injection solution beyond manual constructor injection is explicitly requested, `provider` can be used to make services, repositories, or complex state objects available to the UI layer without tight coupling (note: this document generally defaults against third-party packages for state management unless explicitly requested).
+## Flutter Built-in (only when explicitly requested)
+- Simple local state: `ValueNotifier` + `ValueListenableBuilder`
+- Async single value: `FutureBuilder`
+- Async sequence: `StreamBuilder`
+- Shared/complex state: `ChangeNotifier` + `Consumer` (scope to smallest subtree)
+- `Provider.of<T>(context, listen: false)` for imperative actions without rebuilds

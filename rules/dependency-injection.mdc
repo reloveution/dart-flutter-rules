@@ -1,48 +1,31 @@
 ---
-description: "Dependency injection patterns for Flutter applications. Covers service location, constructor injection, and proper DI container usage."
+description: "Dependency injection patterns for Flutter applications. Covers get_it container, constructor injection, registration order, and composition root."
 globs:
 alwaysApply: true
 ---
 
-# Dependency Injection Rules
+# Dependency Injection
 
-## Service Location & Container
-- Use get_it as a dependency injection container for registering dependencies
-- Register dependencies in proper order (datasources → repositories → use cases → controllers)
-- Use proper dependency resolution order
-- **Important:** get_it should only be used at the composition root (app initialization). Never call `getIt.get<T>()` inside classes, except for rare exceptions such as accessing global services like audio players for UI feedback sounds.
+## Container
+- Use `get_it` as DI container
+- Registration order: datasources → repositories → use cases → controllers
+- Factory registration: stateless services; Singleton registration: stateful services
+- `get_it` is used **only at the composition root** (app initialization)
+- Never call `getIt.get<T>()` inside classes (rare exception: global UI services like audio players — document clearly)
 
-## Registration Patterns
-- Use factory registration for stateless services
-- Use singleton registration for stateful services that need to persist
-- Prefer instance-based singletons registered in get_it. Avoid static methods and proxy wrappers for backward compatibility.
+## Constructor Injection
+- **Always use constructor injection**: receive dependencies as constructor parameters
+- Abstract classes as interfaces, not concrete implementations
+- Avoid circular dependencies
 
-## Injection Patterns
-- **Always use constructor injection:** Inject all dependencies through constructors, never through service locator calls inside classes
-- Classes should receive their dependencies as constructor parameters, not fetch them internally
-- Use abstract classes for interfaces, not concrete implementations
-- **Bad:** Calling `getIt.get<IService>()` inside a class constructor or method (except rare exceptions like global UI services)
-- **Good:** Receiving dependencies as constructor parameters: `MyClass(this.service, this.repository)`
-- **Exception:** Rare cases where constructor injection is impractical (e.g., accessing global audio player for button click sounds). Such exceptions should be clearly documented and kept to absolute minimum.
-
-## Dependency Resolution
-- Resolve dependencies at the composition root (e.g., in `main()` or dependency setup function)
-- Pass resolved dependencies to constructors when creating instances
-- Example structure:
 ```dart
-// At composition root (main.dart or setup function)
+// Composition root only
 final service = getIt<IService>();
 final repository = getIt<IRepository>(param1: service);
-final useCase = getIt<IUseCase>(param1: repository);
-final controller = MyController(useCase: useCase); // constructor injection
+final useCase = MyUseCase(repository: repository);
+final controller = MyController(useCase: useCase);
 ```
 
-## Dependency Management
-- Implement proper dependency lifecycle management
-- Use proper scoping for different types of dependencies
-- Avoid circular dependencies between services
-
-## Testing & Configuration
-- Implement proper dependency testing with mocks
-- Use proper dependency configuration for different environments
-- Constructor injection enables easy mocking: `MyClass(mockService, mockRepository)`
+## Testing
+- Constructor injection enables easy mocking: `MyClass(mockService, mockRepo)`
+- Configure different dependency graphs per environment
