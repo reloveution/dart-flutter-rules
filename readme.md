@@ -9,3 +9,5 @@ A few lines from https://cursor.directory/rules/flutter
 Add Dart/Flutter Skills from https://github.com/MADTeacher/mad-agents-skills
 
 Adaptation of the initial set of rules into the skills system in order to make the behavior of the language model more predictable and manageable.
+
+Compressing rules.
