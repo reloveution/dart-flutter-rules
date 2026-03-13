@@ -1,44 +1,7 @@
 # Web Navigation
 
-## URL Strategies
+## Path URL Strategy Setup
 
-Flutter web supports two URL strategies for navigation:
-
-### Hash Strategy (Default)
-
-**URL format:** `https://example.com/#/path/to/screen`
-
-**Advantages:**
-- No server configuration needed
-- Works with all web servers
-- Simple setup
-
-**Disadvantages:**
-- URLs look less professional
-- Share URLs contain hash
-
-**Setup:**
-```dart
-// No setup required - this is the default
-void main() {
-  runApp(MyApp());
-}
-```
-
-### Path Strategy
-
-**URL format:** `https://example.com/path/to/screen`
-
-**Advantages:**
-- Clean, professional URLs
-- Better for SEO
-- More user-friendly for sharing
-
-**Disadvantages:**
-- Requires server configuration
-- More complex setup
-
-**Setup:**
 ```dart
 import 'package:flutter_web_plugins/url_strategy.dart';
 
@@ -48,20 +11,11 @@ void main() {
 }
 ```
 
-**Required `pubspec.yaml`:**
-```yaml
-dependencies:
-  flutter:
-    sdk: flutter
-  flutter_web_plugins:
-    sdk: flutter
-```
+Requires `flutter_web_plugins` SDK dependency in `pubspec.yaml`.
 
-## Server Configuration
+## SPA Server Rewrite Configs
 
-### General SPA Rewrite Rules
-
-All web servers must rewrite requests to `index.html` for path-based routing:
+Path strategy requires all routes to rewrite to `index.html`.
 
 **Nginx:**
 ```nginx
@@ -82,95 +36,33 @@ location / {
 </IfModule>
 ```
 
-**Firebase Hosting:**
+**Firebase:**
 ```json
 {
   "hosting": {
     "public": "build/web",
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ],
+    "rewrites": [{ "source": "**", "destination": "/index.html" }],
     "cleanUrls": true
   }
 }
 ```
 
-**Vercel (vercel.json):**
+**Vercel:**
 ```json
-{
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}
+{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }
 ```
 
-**Netlify (_redirects file):**
+**Netlify (_redirects):**
 ```
 /* /index.html 200
 ```
 
-## Browser History API Integration
+## Non-Root Path Hosting
 
-When using go_router or Router API, Flutter integrates with browser History API automatically:
+For `https://example.com/myapp/`:
 
-### Forward/Back Buttons
-- Browser back button works automatically
-- Browser forward button works automatically
-- History state is managed by go_router
-
-### URL Updates
-- URL updates when navigating
-- Deep links work from external sources
-- Bookmarks link to correct state
-
-## Testing Web Navigation
-
-### Local Development
-```bash
-flutter run -d chrome
-# Path strategy works automatically with Flutter dev server
-```
-
-### Production
-1. Build web app:
-   ```bash
-   flutter build web
-   ```
-
-2. Configure server with SPA rewrite rules
-
-3. Test URLs:
-   - `https://yourdomain.com/`
-   - `https://yourdomain.com/details/123`
-   - `https://yourdomain.com/product/456`
-
-### Common Issues
-
-**404 errors on navigation:**
-- Configure SPA rewrite rules on server
-- Check file paths are correct
-
-**Hash still appearing:**
-- Ensure `usePathUrlStrategy()` called before `runApp()`
-- Check `flutter_web_plugins` is in dependencies
-
-**Browser back button not working:**
-- Use go_router instead of Navigator
-- Ensure Router API is configured
-
-## Hosting at Non-Root Path
-
-If hosting app at subdirectory (e.g., `https://example.com/myapp/`):
-
-### Update base href in web/index.html
-```html
-<base href="/myapp/">
-```
-
-### GoRouter configuration
+1. Set `<base href="/myapp/">` in `web/index.html`
+2. Configure GoRouter:
 ```dart
 GoRouter(
   initialLocation: '/myapp/',
@@ -180,34 +72,3 @@ GoRouter(
   ],
 );
 ```
-
-## Performance Tips
-
-1. **Use lazy loading** for route code splitting:
-   ```dart
-   GoRoute(
-     path: '/heavy-screen',
-     builder: (context, state) => HeavyScreen(),
-     pageBuilder: (context, state) => MaterialPage(
-       key: state.pageKey,
-       child: HeavyScreen(),
-     ),
-   )
-   ```
-
-2. **Preload routes** for better UX:
-   ```dart
-   // Preload in background
-   WidgetsBinding.instance.addPostFrameCallback((_) {
-     GoRouter.of(context).preloadRoutes();
-   });
-   ```
-
-3. **Minimize route parameters** - prefer query params for optional data
-
-## Accessibility
-
-- Ensure keyboard navigation works
-- Test with screen readers
-- Provide meaningful page titles
-- Use semantic HTML when possible

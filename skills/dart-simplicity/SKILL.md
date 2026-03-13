@@ -5,20 +5,12 @@ description: Simplicity and directness for Dart/Flutter. Use when choosing solut
 
 # Dart Simplicity
 
-## Overview
+## Rules
 
-Straightforward solutions over complex ones, readable over clever, incremental over speculative.
-
-## Reference Files
-
-- [approach.md](references/approach.md) - Direct approach, simple steps, Occam's Razor
-- [complexity.md](references/complexity.md) - Avoid complex chains, clever vs simple
-- [abstraction-yagni.md](references/abstraction-yagni.md) - Abstractions, YAGNI
-- [optimization-incremental.md](references/optimization-incremental.md) - Premature optimization, incremental features
-
-## Quick Reference
-
-- **Approach:** Direct and simple; 2-3 steps not 10; obvious first, then optimize; Occam's Razor
-- **Complexity:** No complex chains; prefer simple over clever; readable over smart
-- **Abstractions:** Add only when necessary; YAGNI
-- **Optimization:** No premature optimization; incremental based on real requirements
+- Solve with the most direct approach; try the obvious first, optimize only if needed
+- If a task takes 2-3 steps, don't make it 10
+- No complex operation chains where simple solutions exist
+- Readable code over clever code — if a solution looks too complex, a simpler one exists
+- No abstractions without real necessity — YAGNI
+- No premature optimization or over-engineering
+- Implement features incrementally based on real requirements

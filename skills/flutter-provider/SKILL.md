@@ -5,31 +5,39 @@ description: Provider state management for Flutter. Use when exposing values wit
 
 # Flutter Provider
 
-## Overview
+## Provider Types
+- **Provider** — exposes a value (no change notification)
+- **ChangeNotifierProvider** — auto-disposes notifier when removed from tree
+- **FutureProvider** — exposes Future result
+- **StreamProvider** — exposes Stream values
+- **ProxyProvider** — depends on other providers; refreshes when upstream changes
+- **Provider.value** — for existing instances managed elsewhere
 
-Provider family usage, scoped rebuilds, ProxyProvider, lifecycle, and debugging.
+Scope each provider to the narrowest subtree that consumes it.
 
-## Reference Files
+## Accessing State
 
-See detailed documentation for each topic:
+| Method | Where | Purpose |
+|---|---|---|
+| `context.watch<T>()` | `build()` | Subscribe and rebuild on change |
+| `context.read<T>()` | Callbacks, event handlers | One-off access, no subscription |
+| `context.select<T, R>()` | `build()` | Subscribe to specific state slice |
 
-- [providers-scoping.md](references/providers-scoping.md) - Provider types, scope to narrowest subtree
-- [type-safety.md](references/type-safety.md) - Generic type arguments
-- [change-notifier-proxy.md](references/change-notifier-proxy.md) - ChangeNotifierProvider, ProxyProvider
-- [watch-read-select.md](references/watch-read-select.md) - context.watch, read, select
-- [lifecycle.md](references/lifecycle.md) - Create callbacks, outside build
-- [provider-value-diagnostics.md](references/provider-value-diagnostics.md) - Provider.value, DevTools
-- [incremental-mounting.md](references/incremental-mounting.md) - MultiProvider, many providers
-- [value-listenable-migration.md](references/value-listenable-migration.md) - ValueListenableProvider migration
-- [testing.md](references/testing.md) - Mock/fake injection
+- Always specify generic type: `Provider<MyType>`, `context.watch<MyType>()`
+- Place `Consumer`/`Selector` as deep in the tree as practical
+- Outside `build`: access only at `didChangeDependencies` or in callbacks — not in constructors or `initState`
 
-## Quick Reference
+## Lifecycle
+- Use `create`/`update` callbacks — don't instantiate from external mutable variables
+- `ChangeNotifierProxyProvider` when notifier depends on other providers
+- `MultiProvider` to avoid nested declarations; for very large apps consider incremental mounting during splash
 
-| Need | Use |
-|------|-----|
-| Rebuild on change | context.watch<T>() in build |
-| One-off action | context.read<T>() in callbacks |
-| Slice of state | context.select<T, R>() or Selector |
-| Outside build | didChangeDependencies or callbacks |
-| Existing instance | Provider.value |
-| Many providers | MultiProvider; consider incremental mounting |
+## Diagnostics
+- Add `DiagnosticableTreeMixin` to provided objects for DevTools readability
+
+## Migration
+- `ValueListenableProvider` is deprecated — use `ValueListenableBuilder` + `Provider.value`
+
+## Testing
+- Shallow provider wiring per test; override providers to inject mock/fake dependencies
+- Scope to what each test needs, keep setup minimal

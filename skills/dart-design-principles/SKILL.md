@@ -5,29 +5,71 @@ description: Core software design principles for maintainable Dart/Flutter code.
 
 # Dart Design Principles
 
-## Overview
+## SOLID
 
-Design principles for maintainable and scalable code: SOLID, composition, polymorphism over type checking, immutability, and reusability.
+- **Single Responsibility**: one reason to change per class
+- **Open/Closed**: extend via new implementations, not by editing existing code
+- **Liskov Substitution**: subtypes must honor behavioral contracts of base types
+- **Interface Segregation**: small specific interfaces; clients must not depend on unused methods
+- **Dependency Inversion**: depend on abstractions; high-level modules never depend on low-level modules directly
 
-## Reference Files
+## Polymorphism Over Type Checking
 
-See detailed documentation for each topic:
+Use base interface methods directly when all switch/case branches call the same method with the same parameters. Avoid unnecessary type casting (`as`) when the interface provides needed functionality.
 
-- [solid.md](references/solid.md) - Single Responsibility, Open/Closed, Liskov, Interface Segregation, Dependency Inversion
-- [code-style.md](references/code-style.md) - Concise, declarative, immutability
-- [composition-abstraction.md](references/composition-abstraction.md) - Composition over inheritance, interfaces, encapsulation
-- [polymorphism.md](references/polymorphism.md) - Polymorphism over switch/case, bad/good example
-- [reusability.md](references/reusability.md) - Sharing behavior, utilities, validation, hashCode
+### Bad (Redundant Switch)
 
-## Quick Reference
+```dart
+IParam _updateParam(IParam param, IParamValue newValue, String changedBy) {
+  switch (param.paramType) {
+    case ParamType.text:
+      final textParam = param as TextParam;
+      return textParam.copyWith(
+        changeHistory: textParam.changeHistory.addChange(
+          newValue as TextParamValue, changedBy),
+      );
+    case ParamType.integer:
+      final intParam = param as IntegerParam;
+      return intParam.copyWith(
+        changeHistory: intParam.changeHistory.addChange(
+          newValue as IntegerParamValue, changedBy),
+      );
+    case ParamType.decimal:
+      final decParam = param as DecimalParam;
+      return decParam.copyWith(
+        changeHistory: decParam.changeHistory.addChange(
+          newValue as DecimalParamValue, changedBy),
+      );
+  }
+}
+```
 
-### SOLID
-- Single Responsibility; Open/Closed; Liskov Substitution; Interface Segregation; Dependency Inversion
+### Good (Polymorphic)
 
-### Polymorphism
-- If all switch cases call same method with same params → use base interface directly
-- Avoid type casting when interface provides needed functionality
+```dart
+IParam _updateParam(IParam param, IParamValue newValue, String changedBy) =>
+    param.copyWith(
+      changeHistory: param.changeHistory.addChange(newValue, changedBy),
+    );
+```
 
-### Composition
-- Prefer composition over inheritance when it adds flexibility
-- Use interfaces for contracts; encapsulate internals
+When behavior truly varies by type, switch/pattern matching is still appropriate.
+
+## Composition and Abstraction
+
+- Prefer composition over inheritance when it adds flexibility and testability
+- Compose behavior from smaller, focused components
+- Hide implementation details behind abstractions; expose only what clients need
+- Use interfaces for contracts between modules; enables mocking and swapping implementations
+
+## Code Style
+
+- Prefer functional and declarative patterns over verbose imperative style
+- Prefer immutable data structures; use `final` fields and `copyWith` for updates
+- Implement `hashCode` and `operator==` for custom classes (consider Equatable)
+
+## Reusability
+
+- Share behavior via inheritance ("is-a") or composition ("has-a") based on relationship
+- Extract repeated logic into utility functions; prefer extension methods for type-specific utilities
+- Centralize validation logic; validate at boundaries (input, API response)

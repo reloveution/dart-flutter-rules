@@ -5,43 +5,53 @@ description: Dart 3 patterns including switch/if-case, pattern matching, sealed 
 
 # Dart 3 Patterns
 
-## Overview
+## Switch
 
-Dart 3 control-flow and pattern-matching reference: conditional branches, switch exhaustiveness, pattern destructuring, pattern operators, and records.
+- **Statement:** no `break` needed; matching case runs and exits
+- **Expression:** `=>` branches, commas between cases, `_` for default
+- **Guards:** `case pattern when condition:` — evaluated after match; false → next case
+- **Logical-or:** `case a || b` — share body; same variables in each branch
+- **Exhaustiveness:** enforced at compile time via `sealed` classes, enums, or `_`/`default`
+- Empty `case` falls through; labeled `continue` for non-sequential fallthrough
 
-## Reference Files
+## if-case
 
-See detailed documentation for each topic:
+- Single pattern match: `if (pair case [int x, int y]) { ... }`
+- Bound variables scoped to matched branch; `else` when no match
 
-- [branches.md](references/branches.md) - if, if-case, switch statement/expression, guards, exhaustiveness
-- [patterns.md](references/patterns.md) - Matching, destructuring, nesting, where to use
-- [pattern-types.md](references/pattern-types.md) - Logical-or, relational, cast, null-check, list, map, record, object
-- [records.md](references/records.md) - Record syntax, access, equality, when to use
+## Pattern Types
 
-## Quick Reference
+- **Logical-or** (`p1 || p2`): left-to-right; same variables in each branch
+- **Logical-and** (`p1 && p2`): both must match; variable names must not overlap
+- **Relational** (`==`, `<`, `>=`...): compare against constants; combine with `&&` for ranges
+- **Cast** (`sub as Type`): assert type; throws on mismatch
+- **Null-check** (`sub?`): match non-null, bind as non-nullable
+- **Null-assert** (`sub!`): require non-null, throw otherwise
+- **Constant**: match equality to constants (const constructors, collections)
+- **Variable** (`var name`, `final Type name`): bind new variables
+- **Wildcard** (`_`, `Type _`): match without binding
+- **List**: match by position; `...` or `...rest` for rest elements; map keys throw `StateError` if missing
+- **Record**: match by shape; destructure positional and named
+- **Object**: `var Foo(:one, :two) = foo;` — destructure via getters; extra fields ignored
 
-### Switch
-- No `break` needed; case body runs and exits
-- `default` or `_` for unmatched
-- Switch expressions: `=>` branches, `_` for default
-- Guards: `case X when condition:`
+## Where to Use Patterns
 
-### if-case
-- Single pattern match with destructuring: `if (pair case [int x, int y]) { }`
-- Variables in scope when matched
-- `else` when pattern doesn't match
+- Variable declarations: `var (a, [b, c]) = ('str', [1, 2]);`
+- Assignments (swap): `(b, a) = (a, b);`
+- Loops: `for (final MapEntry(key: k, value: v) in map.entries)`
+- `switch`/`if-case`, collection literals
 
-### Patterns
-- Logical-or: `case a || b`
-- Object: `var Foo(:one, :two) = foo;`
-- Records: `(a, b: named)`
-- List/map: match by shape
+## Records
 
-### Sealed Classes
-- Mark `sealed` for exhaustiveness checks
-- All subtypes must be handled in switch
+- Immutable, fixed-size, heterogeneous, strongly typed, structural equality
+- Syntax: `('first', a: 2)` — positional + named fields
+- Access: positional via `$1`, `$2`; named via identifier
+- Named field names are part of the type shape; order irrelevant for equality
+- Destructure: `final (:name, :age) = userInfo(json);`
+- `typedef` aliases for readability; extension types can wrap records
+- Prefer records for simple immutable grouping; classes when abstraction/behavior needed
 
-### Records
-- Immutable: `(a, b: name)`
-- Return multiple values; destructure with patterns
-- Type: `(int, String, {bool flag})`
+## Benefits
+
+- Algebraic data types with `sealed` + exhaustive switches
+- Declarative validation/destructuring of complex data (JSON)

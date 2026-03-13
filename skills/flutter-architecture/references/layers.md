@@ -1,193 +1,69 @@
-# Architecture Layers
-
-Detailed guide to layer responsibilities and interactions in Flutter apps.
-
-## Layer Overview
+# Architecture Layers (Clean Architecture + BLoC/Cubit)
 
 ```
-┌─────────────────────────────────────┐
-│           UI Layer                  │
-│  ┌────────────┐  ┌─────────────┐ │
-│  │   Views    │  │ ViewModels  │ │
-│  └────────────┘  └─────────────┘ │
-└─────────────────────────────────────┘
-                  ↓
-┌─────────────────────────────────────┐
-│      Domain Layer (Optional)        │
-│       ┌─────────────────────┐      │
-│       │     Use-cases       │      │
-│       └─────────────────────┘      │
-└─────────────────────────────────────┘
-                  ↓
-┌─────────────────────────────────────┐
-│          Data Layer                │
-│  ┌────────────┐  ┌─────────────┐ │
-│  │Repositories │  │  Services   │ │
-│  └────────────┘  └─────────────┘ │
-└─────────────────────────────────────┘
+Presentation:  Pages/Screens (widgets) + Controllers (Cubit/BLoC)
+Domain:        Use-cases, Entities, Repository interfaces, Services
+Data:          Repository implementations + Datasources
 ```
 
-## UI Layer
+## Presentation Layer
 
-Responsibility: Interact with user, display data, receive input.
+### Pages/Screens
+- Compose widgets for UI; contain no business logic
+- Dispatch events to BLoC / call Cubit methods
+- Rebuild via `BlocBuilder`/`BlocListener`/`BlocConsumer`
+- Allowed logic: conditional rendering, animations, layout, routing
 
-### Views
-**What they do:**
-- Compose widgets to present data
-- Handle user interactions (taps, form inputs)
-- Pass events to ViewModel
-- Re-render when ViewModel state changes
+### Controllers (Cubit/BLoC)
+- Transform use-case results into UI state
+- Manage UI state via `emit()`
+- Depend on Use Cases via constructor injection
+- No Flutter imports, no direct data access
 
-**What they don't do:**
-- Business logic
-- Data transformation
-- State persistence
-- API calls
+## Domain Layer
 
-**Logic allowed in Views:**
-- Simple if-statements for conditional rendering
-- Animation logic
-- Layout logic (responsive design, orientation)
-- Simple routing
+### Use Cases (`Ucs` suffix)
+- Single business operation per use case
+- Depend on Repository interfaces (many-to-many)
+- Can depend on other Use Cases
+- Return `Result<T>`
 
-### ViewModels
-**What they do:**
-- Transform repository data into UI state
-- Maintain UI state (survives configuration changes)
-- Expose commands for user actions
-- Aggregate data from multiple repositories
+### Entities
+- Pure domain models, no DB/API knowledge
+- Immutable with `copyWith`
 
-**What they don't do:**
-- Direct UI manipulation
-- Platform API calls
-- File I/O
-- Network requests directly (use repositories)
+### Repository Interfaces (`I` prefix)
+- Abstract contracts defined in domain layer
+- Implementations live in data layer
 
-**State management:**
-- Use ChangeNotifier for simple apps
-- Consider Provider, Riverpod, or Bloc for complex apps
-- Expose state as Streams or ChangeNotifiers
-
-## Domain Layer (Optional)
-
-**Purpose**: Abstract complex business logic from ViewModels.
-
-### When to add Domain Layer
-Add when ViewModels have logic that:
-1. Merges data from multiple repositories
-2. Is exceedingly complex
-3. Will be reused by different ViewModels
-
-### Use-cases
-**What they do:**
-- Take data from repositories
-- Transform for UI layer consumption
-- Encapsulate reusable business logic
-
-**Relationships:**
-- Use-cases depend on Repositories
-- Use-cases and Repositories: many-to-many
-- ViewModels depend on Use-cases AND Repositories (can skip use-cases for simple logic)
-
-**Pros:**
-- Avoid code duplication in ViewModels
-- Improve testability by separating complex logic
-- Improve code readability in ViewModels
-
-**Cons:**
-- Increases complexity
-- Additional mocks for testing
-- Adds boilerplate code
-
-**Recommendation**: Add use-cases only when needed. Don't force all data access through use-cases for simple operations.
+### Services
+- Domain-level services for cross-cutting business logic (permissions, checklists)
 
 ## Data Layer
 
-Responsibility: Handle business data and logic.
+### Repository Implementations (`Impl` suffix)
+- SSOT for data types; one repo per data type
+- Implement domain interfaces
+- Aggregate data from Datasources, parse raw data into domain models
+- Handle caching, error handling, retry logic
+- Expose data as Streams or Futures
 
-### Repositories
-**What they do:**
-- Single source of truth for data types
-- Poll data from Services
-- Transform raw data into domain models
-- Handle business logic:
-  - Caching
-  - Error handling
-  - Retry logic
-  - Data refresh (polling, user-triggered)
+### Datasources (`Dts` suffix)
+- Wrap external data sources (APIs, databases, platform plugins)
+- Stateless; one datasource per data source
+- Return raw data; parsing happens in repositories
 
-**What they don't do:**
-- Direct UI rendering
-- Business logic better suited for Domain layer
-- Direct knowledge of other repositories
+## Layer Communication
 
-**Output:**
-- Domain models (data classes tailored for app needs)
-- Exposed as Streams (real-time) or Futures (one-time)
+1. Adjacent layers only: Presentation → Domain → Data
+2. State flows: Data → Domain → Presentation; Events flow: Presentation → Domain → Data
+3. Presentation never reaches Data directly
+4. Lower layers don't depend on upper layers
 
-**Relationships:**
-- Many-to-many with ViewModels
-- Many-to-many with Services
-- Should not be aware of each other
+## Testing
 
-### Services
-**What they do:**
-- Wrap external data sources
-- Expose async response objects (Future, Stream)
-- Isolate data loading
-- One service per data source
-
-**What they don't do:**
-- Hold state (stateless)
-- Business logic
-- Data transformation
-- Caching
-
-**Examples:**
-- Platform APIs (iOS/Android native)
-- REST/GraphQL API clients
-- Local file access
-- Database access
-- Platform plugins (geolocation, camera, etc.)
-
-**Relationships:**
-- Many-to-many with Repositories
-- Can be shared across the app
-
-## Layer Communication Rules
-
-1. **Adjacent layers only**: UI ↔ Domain ↔ Data
-2. **Unidirectional data flow**: Data → ViewModel → View
-3. **Events flow opposite**: View → ViewModel → Repository → Service
-4. **No skipping layers**: Views don't call Services directly
-5. **Dependencies**: Lower layers don't depend on upper layers
-
-## When to Use Which Layer
-
-**Small CRUD apps:**
-- UI Layer (Views + ViewModels)
-- Data Layer (Repositories + Services)
-- Skip Domain Layer
-
-**Apps with complex business logic:**
-- UI Layer
-- Domain Layer (for complex, reusable logic)
-- Data Layer
-- ViewModels may use Repositories directly for simple operations, Use-cases for complex
-
-**Enterprise apps with complex rules:**
-- All three layers
-- Consider enforcing Use-cases for all data access
-
-## Testing Strategy
-
-**UI Layer Tests:**
-- Widget tests for Views
-- Unit tests for ViewModels (mock Repositories)
-
-**Domain Layer Tests:**
-- Unit tests for Use-cases (mock Repositories)
-
-**Data Layer Tests:**
-- Unit tests for Repositories (mock Services)
-- Integration tests for Services (actual APIs/databases)
+- **Widgets**: widget tests
+- **Cubit/BLoC**: unit tests with `bloc_test`, mock Use Cases
+- **Use Cases**: unit tests, mock Repositories
+- **Repositories**: unit tests, mock Datasources
+- **Datasources**: integration tests

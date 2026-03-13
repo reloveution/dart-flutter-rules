@@ -1,37 +1,65 @@
 ---
 name: cursor-mcp-servers
-description: How to use MCP servers in Cursor. Use when choosing between Dart MCP, Firecrawl, Hugging Face; when running Dart/Flutter tools, web scraping, or ML model search; when add_roots, pub_dev_search, scrape, or analyze_files are needed.
+description: MCP server usage for Dart MCP, Firecrawl, Hugging Face. Tool priorities, commands, workflows.
 ---
 
-# Cursor MCP Servers
+# MCP Servers
 
-## Overview
+## Tool Priority
 
-Usage rules for Dart MCP, Firecrawl MCP, and Hugging Face MCP servers in Cursor. When to use each, priority guidelines, and workflows.
+| Task | Tool | Fallback |
+|---|---|---|
+| Dart/Flutter packages | `pub_dev_search` | Firecrawl scrape pub.dev |
+| Code analysis/format/tests | Dart MCP | — |
+| Web content | Firecrawl `scrape`/`map` | `web_search` |
+| ML models/datasets/papers | Hugging Face MCP | Firecrawl |
 
-## Reference Files
+**firecrawl_search: UNAVAILABLE (503)** — use `web_search` or `map` + `scrape`.
 
-See detailed documentation for each topic:
+## Dart MCP
 
-- [overview.md](references/overview.md) - General principles, verify before use
-- [dart-mcp.md](references/dart-mcp.md) - Dart MCP commands, add_roots, pub, analyze
-- [firecrawl-mcp.md](references/firecrawl-mcp.md) - Scrape, map, batch, extract; search unavailable
-- [huggingface-mcp.md](references/huggingface-mcp.md) - Models, datasets, papers, image gen
-- [priorities.md](references/priorities.md) - Which tool for Dart packages, web, ML
-- [usage-rules.md](references/usage-rules.md) - 11 usage rules
-- [workflow-examples.md](references/workflow-examples.md) - Key workflow examples
-- [errors-limits.md](references/errors-limits.md) - Error handling, limitations per server
+**Setup:** `add_roots` required before workspace commands. Format: `[{uri: "file:///path", name: "optional"}]`.
 
-## Quick Reference
+**Commands:**
+- **Project:** create_project, add_roots, remove_roots, pub (add/get/remove/upgrade), pub_dev_search
+- **Analysis:** analyze_files, dart_fix, dart_format
+- **Symbols:** resolve_workspace_symbol, hover, signature_help
+- **Tests:** run_tests (testRunnerArgs: name, tags, platform, timeout, fail-fast, coverage)
+- **DTD (running app):** connect_dart_tooling_daemon (needs URI from user), hot_reload, get_runtime_errors, get_widget_tree, get_selected_widget
 
-### Dart MCP First
-- Dart/Flutter: add_roots → analyze_files, pub_dev_search, run_tests
-- Pub packages: ALWAYS pub_dev_search, never web search
+**Errors:** Verify SDK; DTD needs fresh URI after reconnect; dart_fix before manual fixes; check network for pub.
 
-### Firecrawl
-- Search UNAVAILABLE (503) — use web_search or map + scrape
-- Single page: scrape; multiple: batch_scrape; structured data: extract
+## Firecrawl
 
-### Hugging Face
-- ML models, datasets, papers — use HF MCP
-- Dart packages — use Dart MCP, not HF
+- `scrape` — single page (formats: markdown/html; maxAge for caching)
+- `batch_scrape` → `check_batch_status` — multiple URLs
+- `map` — discover URLs on site, then scrape
+- `crawl` → `check_crawl_status` — full site (caution: token overflow; limit depth/pages)
+- `extract` — structured data with schema/prompt
+
+**Config:** FIRECRAWL_API_KEY required. maxAge for caching (172800000 = 2 days).
+
+**Errors:** `onlyMainContent: true` for cleaner scrape; JS-heavy sites may fail.
+
+## Hugging Face
+
+- `model_search` (query, sort, limit, author, library, task) — max 100/query
+- `dataset_search` (query, sort, tags)
+- `paper_search` (query, results_limit, concise_only) — concise_only for broad search
+- `space_search`, `hub_repo_details` (repo_ids `author/name`, repo_type) — max 10/call
+- `hf_doc_search` → `hf_doc_fetch` (offset for large docs)
+- `gr1_flux1_schnell_infer` (prompt, width, height, num_inference_steps) — defaults: 4 steps, 1024x1024
+
+**Errors:** `hf_whoami` for auth; specify repo_type if auto-detect fails; filter early.
+
+## Key Workflows
+
+```
+Package info:     pub_dev_search(query: "package_name")
+Add dependency:   pub(command: "add", packageName: "x", roots: [{root: "file:///path"}])
+Analyze project:  add_roots → analyze_files → dart_fix → dart_format
+Web docs:         web_search for URLs → scrape(url, formats: ["markdown"], onlyMainContent: true)
+Batch scrape:     batch_scrape(urls) → check_batch_status(id)
+ML models:        model_search with filters → hub_repo_details
+DTD:              connect_dart_tooling_daemon(uri) → get_widget_tree / hot_reload
+```

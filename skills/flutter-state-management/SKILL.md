@@ -5,21 +5,33 @@ description: State management for Flutter. Use when choosing patterns, implement
 
 # Flutter State Management
 
-## Overview
+## General Rules
+- Separate ephemeral (local) and app state
+- Keep state immutable; use `copyWith` for updates
+- No global variables for state
+- Single state management approach per widget
+- Serialize state for app lifecycle / restoration
 
-Immutable state, separation of ephemeral vs app state, BLoC/Cubit, built-in solutions, ChangeNotifier, Provider.
+## BLoC
+- Trigger changes via events from UI callbacks: `() => bloc.add(FormSubmitted(user))`
+- Don't wrap `emit()` in try-catch
+- Don't use `setState` inside BLoC
+- Don't mix `BlocBuilder` with `setState`
 
-## Reference Files
+## Cubit
+- Interact via public methods: `cubit.loadData()`
+- Business logic inside cubit methods; each method emits correct state
+- No bloc-style events in cubits
 
-- [general.md](references/general.md) - Separation, immutability, lifecycle, persistence
-- [bloc-cubit.md](references/bloc-cubit.md) - BLoC, Cubit, anti-patterns
-- [built-in.md](references/built-in.md) - Streams, Futures, ValueNotifier
-- [change-notifier-provider.md](references/change-notifier-provider.md) - ChangeNotifier, Provider, MVVM
+## Built-in (only when explicitly requested)
+- `ValueNotifier` + `ValueListenableBuilder` — simple local single-value state
+- `StreamBuilder` — async event sequence
+- `FutureBuilder` — single async result
 
-## Quick Reference
-
-- **General:** Ephemeral vs app state; immutable + copyWith; no globals; single approach per widget
-- **BLoC:** Events from UI; no try-catch on emit
-- **Cubit:** Public methods; no events in cubit
-- **Built-in:** Streams, Futures, ValueNotifier — use when explicitly requested
-- **ChangeNotifier/Provider:** Scope narrow; Consumer deep; notifyListeners after mutation
+## ChangeNotifier (only when explicitly requested)
+- Scope `ChangeNotifierProvider` to narrowest consuming subtree
+- Private mutable fields, expose getters or unmodifiable views
+- `notifyListeners()` after each mutation
+- `Consumer<T>` around smallest dependent subtree; unrelated children in `Consumer.child`
+- `Provider.of<T>(context, listen: false)` for imperative actions without rebuilds
+- `ListenableBuilder` for listening to any `Listenable`

@@ -1,56 +1,26 @@
----
-title: Architecture Error Handling
-description: Result type, zones, and multi-level protection for business logic
----
-
 # Architecture Error Handling
 
-## Result&lt;T&gt;
+All services, repositories, use cases, and controllers communicate through `Result<T>`. Never throw in business logic. See **dart-error-handling** skill for details.
 
-Use `Result<T>` for all business logic error handling.
+## Multi-Level Protection (critical operations)
 
-- All services, repositories, use cases, and controllers must communicate through `Result<T>` wrapper
-- Never throw exceptions in business logic
-- See **dart-error-handling** skill for Result implementation and exception vs Error handling
-
-## Multi-Level Protection
-
-For critical operations (e.g. measurement, scientific data integrity):
-
-1. **Result&lt;T&gt;** – primary error wrapper for all business operations
-2. **runZonedGuarded** – wrap critical measurement/calculation zones
-3. **try/catch** – additional protection within zones for unexpected failures
-
-### runZonedGuarded
-
-Use for operations where uncaught errors must not propagate:
-
-```dart
-runZonedGuarded(() async {
-  final result = await measurementService.capture();
-  // Critical path - any uncaught error is caught
-}, (error, stack) {
-  log('Critical measurement error', error: error, stackTrace: stack);
-});
-```
-
-### Within Zones
-
-Use try/catch inside zones for operations that might fail transiently:
+1. **Result\<T\>** — primary error wrapper (`Result.success(data)` / `Result.error(message:, stackTrace:)`)
+2. **runZonedGuarded** — wrap critical measurement/calculation zones
+3. **try/catch** — within zones for transient failures
 
 ```dart
 runZonedGuarded(() async {
   try {
     final result = await repo.getData();
     return result;
-  } on TimeoutException catch (e) {
-    return Result.failure(NetworkError.from(e));
+  } on TimeoutException catch (e, s) {
+    return Result.error(message: 'Timeout', stackTrace: s);
   }
 }, (e, s) => log('Zone error', error: e, stackTrace: s));
 ```
 
 ## Layer Responsibilities
 
-- **Repositories**: Convert exceptions to `Result<T>.failure`
-- **Use Cases**: Propagate `Result<T>`, compose repository results
-- **Controllers**: Handle `Result<T>` for UI feedback (snackbars, dialogs)
+- **Repositories**: Convert exceptions to `Result.error(message:, stackTrace:)`
+- **Use Cases**: Propagate and compose `Result<T>`
+- **Controllers (Cubit/BLoC)**: Handle `Result<T>` via `.when()` for UI state emission

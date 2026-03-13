@@ -1,43 +1,53 @@
 ---
 name: dart-data-patterns
-description: Data handling patterns for Dart/Flutter applications. Use when implementing data transformation, serialization, caching, layer separation, data flow, DTOs, repositories, offline-first, migrations, and data validation.
+description: Data handling patterns for Dart/Flutter. Use when implementing serialization, caching, layer separation, DTOs, repositories, offline-first, or data validation.
 ---
 
-# Dart Data Patterns
+# Data Patterns
 
-## Overview
+## Data Flow
 
-Data handling patterns for Dart/Flutter applications: data flow, DTOs, serialization, caching, synchronization, and layer separation.
+- Repositories = single source of truth; reconcile local cache + remote; expose immutable data
+- Abstract data sources (API, DB) via repository/service interfaces
+- Consumers depend on abstractions, not implementations
 
-## Reference Files
+## Layer Boundaries
 
-See detailed documentation for each topic:
+- Domain entities: no JSON, no SQL, no platform APIs
+- DTOs encapsulate all mapping and JSON conversion; tables reference DTOs, not converters
+- Data layer owns serialization/persistence; domain layer owns business rules
 
-- [data-flow.md](references/data-flow.md) - Repositories, single source of truth, abstractions
-- [serialization.md](references/serialization.md) - DTOs, fromJson/toJson, validation
-- [streaming.md](references/streaming.md) - Real-time data updates
-- [caching.md](references/caching.md) - TTL, pagination, performance
-- [synchronization.md](references/synchronization.md) - Local/remote sync, optimistic updates
-- [data-management.md](references/data-management.md) - Migrations, modeling, compression
-- [security-reliability.md](references/security-reliability.md) - Encryption, backup
-- [architecture.md](references/architecture.md) - Domain vs DTO, layer boundaries
+## Serialization
 
-## Quick Reference
+- DTOs for data transfer between layers; separate from domain entities
+- `fromJson`/`toJson` with explicit nullability and type handling
+- Code generation (json_serializable, freezed) when appropriate
+- `copyWith` for immutable updates; validate at boundaries before use
 
-### Data Flow
-- Repositories = single source of truth
-- Abstract data sources via interfaces
-- Expose immutable data to consumers
+## Streaming
 
-### DTOs & Serialization
-- DTOs between layers; `fromJson`/`toJson`
-- Data classes with `copyWith`
-- Validate at boundaries
+- `Stream<T>` from repositories for reactive data (WebSocket, DB watch, polling)
+- Broadcast streams when multiple listeners; handle errors and completion
 
-### Sync
-- Optimistic updates; reconcile with backend response
-- Offline-first: local persistence + remote sync in repo
+## Caching & Performance
 
-### Architecture
-- Domain entities: no DB knowledge
-- DTOs encapsulate mapping; tables reference DTOs, not converters
+- TTL-based caching with invalidation rules (on write, time, demand)
+- Cursor-based or offset-based pagination for large datasets
+- Isolates (`compute()`) for large payload parsing; minimize serialization in hot paths
+
+## Synchronization
+
+- Sync strategy: last-write-wins, merge, or conflict resolution
+- Optimistic updates: apply locally → reconcile with backend; roll back on failure
+- Offline-first: serve from local cache, queue writes offline, flush when connected
+
+## Data Management
+
+- Version schema; support upgrade paths; test migrations on real data
+- Normalize where appropriate; denormalize for read performance
+- Compress large payloads when beneficial (balance CPU vs bandwidth)
+
+## Security
+
+- Encrypt at rest (`flutter_secure_storage` for credentials); HTTPS for network
+- Support export/import for user data; handle corrupt data gracefully

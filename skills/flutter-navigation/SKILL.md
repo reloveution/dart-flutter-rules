@@ -1,110 +1,90 @@
 ---
 name: flutter-navigation
-description: Comprehensive guide for Flutter navigation and routing including Navigator API, go_router, deep linking, passing/returning data, and web-specific navigation. Use when implementing screen transitions, configuring routing systems, setting up deep links, handling browser history, or managing navigation state in Flutter applications.
+description: Flutter navigation and routing: go_router, auto_route, Navigator 2.0, deep linking, data passing, web URL strategies. Use when implementing screen transitions, routing, deep links, or browser history.
 ---
 
 # Flutter Navigation
 
-## Overview
+## Approach Selection
 
-Implement navigation and routing in Flutter applications across mobile and web platforms. Choose the right navigation approach, configure deep linking, manage data flow between screens, and handle browser history integration.
+**go_router (declarative)** — production default:
+- Deep linking (iOS, Android, Web), browser history, URL-based navigation
+- Multiple Navigator widgets, shell routes
 
-## Choosing an Approach
+**auto_route (code-gen declarative)** — alternative for large apps:
+- Type-safe arguments generated from annotations, zero string-based parsing
+- Built-in per-route DI via `AutoRouteWrapper`, class-based route guards
 
-### Use Navigator API (Imperative) When:
-- Simple apps without deep linking requirements
-- Single-screen to multi-screen transitions
-- Basic navigation stacks
-- Quick prototyping
+**Navigator API (imperative)** — limited use:
+- Short-lived overlays only: dialogs, bottom sheets, temporary views
+- No deep linking, no browser forward button on web
 
-Example: `assets/navigator_basic.dart`
-
-### Use go_router (Declarative) When:
-- Apps requiring deep linking (iOS, Android, Web)
-- Web applications with browser history support
-- Complex navigation patterns with multiple Navigator widgets
-- URL-based navigation needed
-- Production applications with scalable architecture
-
-Example: `assets/go_router_basic.dart`
-
-### Avoid Named Routes
-Flutter team does NOT recommend named routes. They have limitations:
-- Cannot customize deep link behavior
-- No browser forward button support
-- Always pushes new routes regardless of current state
-
-## Common Tasks
-
-### Pass Data Between Screens
-
-**With Navigator:**
-```dart
-Navigator.push(
-  context,
-  MaterialPageRoute(builder: (context) => DetailScreen(item: myItem)),
-);
-```
-
-**With go_router:**
-```dart
-context.push('/details?id=123');
-// Extract: final id = state.uri.queryParameters['id'];
-```
-
-Example: `assets/passing_data.dart`
-
-### Return Data From Screens
-
-```dart
-final result = await Navigator.push(
-  context,
-  MaterialPageRoute<String>(builder: (context) => SelectionScreen()),
-);
-if (!context.mounted) return;
-```
-
-Example: `assets/returning_data.dart`
-
-### Configure Deep Linking
-
-**Android:** Configure `AndroidManifest.xml` intent filters
-**iOS:** Configure `Info.plist` for Universal Links
-**Web:** Automatic with go_router, choose URL strategy
-
-For detailed setup: `references/deep-linking.md`
-
-### Web URL Strategy
-
-**Hash (default):** `example.com/#/path` - no server config needed
-**Path:** `example.com/path` - cleaner URLs, requires server config
-
-For server setup: `references/web-navigation.md`
+**Named routes** — NOT recommended by Flutter team:
+- Can't customize deep link behavior, no browser forward button, always pushes new routes
 
 ## Navigation Methods
 
-### go_router Navigation
-- `context.go('/path')` - replace current route
-- `context.push('/path')` - add to stack
-- `context.pop()` - go back
+| go_router | auto_route | Navigator | Purpose |
+|---|---|---|---|
+| `context.go('/path')` | `context.router.replace(Route())` | — | Replace current route |
+| `context.push('/path')` | `context.router.push(Route())` | `Navigator.push()` | Add to stack |
+| `context.pop()` | `context.router.maybePop()` | `Navigator.pop()` | Go back |
 
-### Navigator Navigation
-- `Navigator.push()` - add route to stack
-- `Navigator.pop()` - remove route from stack
+## Data Between Screens
 
-## Advanced Topics
+**go_router — path/query params:**
+```dart
+// Route: GoRoute(path: '/details/:id', builder: ...)
+context.push('/details/123?tab=info');
+// Extract: state.pathParameters['id'], state.uri.queryParameters['tab']
+```
 
-**Route Guards:** Implement authentication redirects
-**Nested Routes:** Create shell routes with shared UI
-**Error Handling:** Handle 404 and navigation errors
-**Multiple Navigators:** Manage independent navigation stacks
+**go_router — extra data (not in URL, lost on web refresh):**
+```dart
+context.push('/details', extra: {'key': 'value'});
+// Extract: state.extra as Map<String, dynamic>
+```
 
-For advanced patterns: `references/go_router-guide.md`
+**Navigator — constructor params:**
+```dart
+Navigator.push(context, MaterialPageRoute(builder: (_) => DetailScreen(item: myItem)));
+```
 
-## Decision Guide
+**Return data:**
+```dart
+final result = await Navigator.push(context, MaterialPageRoute<String>(builder: (_) => SelectionScreen()));
+if (!context.mounted) return;
+```
 
-Use [navigation-patterns.md](references/navigation-patterns.md) for:
-- Complete comparison of navigation approaches
-- Deep linking behavior by platform
-- Web-specific considerations
-- Common patterns and anti-patterns
+## Deep Linking Behavior by Platform
+
+| Platform | Navigator | go_router |
+|---|---|---|
+| iOS (cold start) | initialRoute "/" then pushRoute | initialRoute "/" then RouteInformationParser |
+| Android (cold start) | initialRoute with route | initialRoute with route path |
+| iOS/Android (running) | pushRoute called | Route parsed, Navigator configured |
+| Web | No browser forward button | Full browser History API |
+
+Platform setup: [deep-linking.md](references/deep-linking.md)
+
+## Web URL Strategy
+
+- **Hash (default):** `example.com/#/path` — no server config
+- **Path:** `example.com/path` — call `usePathUrlStrategy()` before `runApp()`, requires SPA rewrite
+
+Server configs and non-root hosting: [web-navigation.md](references/web-navigation.md)
+
+## Navigator 2.0 (Router API)
+
+Underlying declarative API that go_router and auto_route wrap. Direct use rarely justified.
+
+- `RouterDelegate` — builds Navigator based on app state
+- `RouteInformationParser` — converts URL to/from app state
+- `PopScope` — intercept back navigation (replaced `WillPopScope` in Flutter 3.16+)
+
+Use raw Router API only when routing packages can't express your custom page stack logic.
+
+## References
+
+- [go_router-guide.md](references/go_router-guide.md) — setup, named routes, shell routes, guards, error handling
+- [auto_route-guide.md](references/auto_route-guide.md) — setup, type-safe args, route guards, per-route DI, tab navigation

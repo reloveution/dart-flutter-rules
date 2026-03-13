@@ -5,21 +5,18 @@ description: Security best practices for Flutter apps. Use when storing credenti
 
 # Flutter Security
 
-## Overview
+## Storage
+- Never store sensitive data in `SharedPreferences` or plain text
+- `flutter_secure_storage` for API keys, tokens, credentials
 
-Data protection, secure storage, input validation, secure communication.
+## Input & Display
+- Validate all user inputs on both client and server
+- Sanitize data before displaying (XSS prevention)
 
-## Reference Files
+## Network
+- HTTPS only for all communications
+- Certificate pinning for critical APIs
+- Proper session management and token refresh
 
-- [storage.md](references/storage.md) - Sensitive data, API keys, tokens
-- [validation-sanitization.md](references/validation-sanitization.md) - Input validation, XSS prevention
-- [network-session.md](references/network-session.md) - HTTPS, session, certificate pinning
-- [logging.md](references/logging.md) - What not to log
-
-## Quick Reference
-
-- **Storage:** Flutter Secure Storage for keys, tokens, credentials — never SharedPreferences/plain text
-- **Input:** Validate client + server; sanitize before display (XSS)
-- **Network:** HTTPS always; certificate pinning for critical APIs
-- **Session:** Proper session management, token refresh
-- **Logs:** Never log passwords, tokens, personal data
+## Logging
+- Never log passwords, tokens, personal data

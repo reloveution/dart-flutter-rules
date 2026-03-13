@@ -1,55 +1,118 @@
 ---
 name: dart-code-quality
-description: Core code quality rules for clean, maintainable Dart/Flutter code. Use when formatting code, writing documentation, handling async/null safety, organizing classes, or following Dart best practices.
+description: Core code quality rules for Dart/Flutter. Use when formatting, handling async/null safety, organizing classes, or following Dart best practices.
 ---
 
 # Dart Code Quality
 
-## Overview
+## Logging
 
-Core rules for clean, maintainable Dart and Flutter code. Covers logging, async, null safety, documentation, style, and best practices.
+- No `print`/`debugPrint` in production; preserve existing `log()` calls
+- Use `dart:developer` `log()` for structured logging
+- No new comments — only `TODO` in English; no trailing comments
+- Document reasons when ignoring linter rules
 
-## Reference Files
+## Async/Await
 
-See detailed documentation for each topic:
+- Always `async/await`, never `.then()`
+- Pass-through without async: `Future<T> method() => other();`
+- No unnecessary `await` in return: `return future;` not `return await future;`
+- `unawaited()` for fire-and-forget; never silently discard futures
+- `Future<void>` for async methods without return value
 
-- [logging.md](references/logging.md) - Structured logging, print vs log, toString, assert
-- [tools.md](references/tools.md) - dart format, dart fix, analysis_options, build_runner
-- [async.md](references/async.md) - Future, Stream, unawaited, pass-through
-- [null-safety.md](references/null-safety.md) - Avoid !, extract nullable, null-aware operators
-- [functions.md](references/functions.md) - Arrow functions, parameters, BlocBuilder style
-- [documentation.md](references/documentation.md) - Doc comments, API design
-- [style.md](references/style.md) - Naming, line length, strings, formatting
-- [control-flow.md](references/control-flow.md) - Guard clauses, early returns
-- [types.md](references/types.md) - Avoid dynamic, sealed, explicit types
-- [constructors.md](references/constructors.md) - Initializing formals, super params
-- [variables.md](references/variables.md) - final, ternary over if-else
-- [collections.md](references/collections.md) - Literals, functional methods, equality
-- [organization.md](references/organization.md) - Nesting, DRY, class member order
-- [error-handling.md](references/error-handling.md) - UI errors, catch, rethrow
-- [constants.md](references/constants.md) - Magic numbers, imports
-- [performance.md](references/performance.md) - Build methods, const
-- [testing.md](references/testing.md) - run_tests, checks, AAA, naming
-- [utilities.md](references/utilities.md) - Getters, enum byName, validation
+## Null Safety
 
-## Quick Reference
+- Avoid `!` — extract nullable to local variable, then use it
+- Prefer `?.`, `??`, `??=` over explicit null checks
+- `bool?`: use `== true` to distinguish from null
 
-### Logging
-Use `developer.log()` from `dart:developer`; never print in production.
+## Style
 
-### Async
-`Future<T> m() => other();` for pass-through; `unawaited()` for fire-and-forget.
+- **Naming:** PascalCase classes, camelCase members, snake_case files
+- **Line length:** 80 chars max
+- **Strings:** single quotes; interpolation `$var` over `+`; alt quotes to avoid escapes
+- **Formatting:** trailing commas in multi-line; newline at end of file
+- Write as short as possible while staying clear
 
-### Null Safety
-Extract nullable to local; avoid `!`; use `??`, `?.`.
+## Control Flow
 
-### Formatting
-80 chars, trailing commas, `dart format`, `dart fix`.
+- Guard clauses: `if (state is! Loaded) return;` to reduce nesting
+- No `== true`/`== false` on booleans (exception: `bool?`)
+- No empty else/statements; `.isEven` not `% 2 == 0`
+- `return value = compute();` — join return with assignment
 
-### Class Order
-static const → fields → constructor → getters → lifecycle → overrides → public → private
+## Functions
 
-## Related Skills
+- Arrow functions for single-expression; max ~20 lines per function
+- Named params for >2 parameters; required before optional
+- No positional boolean params; no redundant argument values
+- Extension methods over static methods for utilities
+- `typedef F<T> = R Function(T);` for complex signatures
 
-- **dart-error-handling** – Result type, business logic exceptions
-- **flutter-testing** – Full testing guide
+## Variables
+
+- `final` for immutable values; `final` in for-in loops
+- Do NOT use `final` for function parameters (`avoid_final_parameters: true`)
+- Ternary over mutable if-else: `final val = cond ? y : x;`
+- `Type? v;` not `Type? v = null;`
+
+## Types
+
+- No `dynamic` — explicit type annotations; always declare return types
+- Class modifiers: `sealed`, `base`, `final`, `interface`, `abstract`, `mixin`
+- Pattern matching over `.runtimeType.toString()`
+- `void` not `Null`; avoid type names as parameter names
+
+## Collections
+
+- Literals `[]`, `{}` not constructors
+- `.isEmpty`/`.isNotEmpty` over `.length == 0`
+- `.whereType<T>()` for type filtering; `.contains()` over `.indexOf() != -1`
+- Inline in literals; `StringBuffer` for loops
+- Cascades `..` when appropriate; `enum.values.byName()` for string-to-enum
+
+## Organization
+
+- Extract methods when nesting >3 levels; no duplication
+- No unnecessary overrides, parentheses, raw strings
+- No returning null from void; no returning `this` (except builder)
+- No setters without getters; no self-assignments
+
+### Class Member Order
+
+1. Static constants → 2. Fields (final → regular) → 3. Constructor → 4. Getters/Setters → 5. Lifecycle → 6. @override → 7. Public methods → 8. Private methods
+
+## Constructors
+
+- `this.field` over body assignments; `super.field` for super params
+- `late` for non-null vars initialized after construction
+- Asserts in initializer list with messages
+- No field initializers in const classes; no unused constructor params
+
+## Constants and Imports
+
+- No magic numbers — use `AppConstants`
+- Relative imports for same directory; no imports from package `src`
+
+## Error Handling
+
+- User-friendly messages; never expose technical details
+- Specific `on SpecificException catch (e)` — never generic catch
+- Never catch `Error`; use `rethrow` not `throw e`
+- No control flow in `finally`
+
+## Documentation
+
+- `///` doc comments; first sentence = concise summary; blank line after
+- Document public APIs, private when helpful; include code samples
+- Explain why, not what; no useless docs restating the obvious
+
+## Tools
+
+- `dart format`, `dart fix`, `build_runner build --delete-conflicting-outputs`
+
+## Testing
+
+- Arrange-Act-Assert; `group()` per class; "should ..." naming
+- `package:checks` for assertions; fakes/stubs over mocks
+- See **flutter-testing** and **dart-mocktail** skills for details

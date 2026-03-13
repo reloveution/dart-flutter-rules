@@ -5,33 +5,35 @@ description: Project naming conventions for Dart/Flutter. Use when naming interf
 
 # Dart Naming Conventions
 
-## Overview
+## Suffixes and Prefixes
 
-Project-specific naming: interfaces, implementations, use cases, datasources, extensions, mixins, files, and abbreviations.
+| Pattern | Convention | Example |
+|---|---|---|
+| Interface | `I` prefix | `IExportRepo`, `IApiMagDecDts` |
+| Implementation | `Impl` suffix | `MagDecRepoImpl`, `NoaaApiMagDecDtsImpl` |
+| Use case | `Ucs` suffix | `GetMagDecUcs`, `ExecuteProjectExportUcs` |
+| Datasource | `Dts` suffix | `IApiMagDecDts`, `IExcellExportDts` |
+| Extension | `X` suffix | `ExtExcelPrjBaseSheet` |
+| Mixin | `Mxn` suffix | `MxnExcelFormatting`, `MxnRepoCharsXlsxDisc` |
+| Rare function | `$` prefix (hides from autocomplete) | `$helper` |
 
-## Reference Files
+## Folder and Variable Abbreviations
 
-See detailed documentation for each topic:
+- Use `repo` not `repository` in class/folder/variable names.
+- Use `dts` not `datasource` in class/folder/variable names.
+- Multiple extensions in a feature: organize in `X/` folder.
 
-- [autocomplete.md](references/autocomplete.md) - $ prefix for rare functions
-- [interfaces-impl.md](references/interfaces-impl.md) - I prefix, Impl suffix
-- [extensions-mixins.md](references/extensions-mixins.md) - X suffix, Mxn suffix
-- [use-cases-datasources.md](references/use-cases-datasources.md) - Ucs, Dts, repo, dts
-- [datasource-patterns.md](references/datasource-patterns.md) - Package prefix, I{Feature}Dts, folders
-- [variables-abbreviations.md](references/variables-abbreviations.md) - Clear context
-- [general-naming.md](references/general-naming.md) - snake_case, PascalCase, camelCase, acronyms
+## Datasource Implementation Naming
 
-## Quick Reference
+- Interface: `I{FeatureMarking}Dts` -- `IDocumentDts`, `IApiMagDecDts`.
+- Implementation with external package: `{PackageName}{FeatureMarking}DtsImpl` -- `ExcelExportDtsImpl`, `NoaaApiMagDecDtsImpl`.
+- Multiple datasources per repository: separate folders per source -- `api/`, `excell/`, `csv/`.
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Interface | I prefix | IExportRepo |
-| Implementation | Impl suffix | MagDecRepoImpl |
-| Use case | Ucs suffix | GetMagDecUcs |
-| Datasource | Dts suffix | IApiMagDecDts |
-| Extension | X suffix | ExtExcelPrjBaseSheet |
-| Mixin | Mxn suffix | MxnExcelFormatting |
-| Rare function | $ prefix | $helper |
-| File | snake_case | user_service.dart |
-| Class | PascalCase | UserService |
-| Acronym 3+ chars | Capitalize as word | HttpClient |
+## Abbreviations
+
+- Avoid abbreviations unless context is unambiguous.
+- Bad: `idx` (index of what?). Good: `fs` for fracture systems when context is clear.
+
+## Acronyms
+
+- Acronyms >2 letters capitalize as words: `HttpClient`, `SqlRepository` (not `HTTPClient`).

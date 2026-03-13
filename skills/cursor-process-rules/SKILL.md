@@ -1,37 +1,45 @@
 ---
 name: cursor-process-rules
-description: Development process and collaboration rules for AI-assisted coding. Use when planning complex tasks, implementing incrementally, managing packages, or following communication and termination guidelines.
+description: Development process rules. Use when planning complex tasks, implementing incrementally, managing packages, or following communication guidelines.
 ---
 
-# Cursor Process Rules
+# Process Rules
 
-## Overview
+## Incremental Development
 
-Process rules for development: clarification, incremental implementation, communication style, package management.
+For complex tasks (multiple files, architectural changes):
+1. Analyze → create step-by-step plan → present for review
+2. Implement one step at a time with complete, ready-to-use code
+3. Wait for user confirmation before next step
+4. Answer clarifying questions before continuing
 
-## Reference Files
+## Clarification
 
-See detailed documentation for each topic:
+- Ask clarifying questions for ambiguous requirements — don't assume
+- Clarify: intended functionality, target platform, edge cases, constraints
 
-- [clarification.md](references/clarification.md) - Ask clarifying questions
-- [code-generation.md](references/code-generation.md) - Dynamic generators, exact file names
-- [incremental-development.md](references/incremental-development.md) - Step-by-step plan, confirm before next
-- [communication-termination.md](references/communication-termination.md) - Terminate after delivery
-- [interaction-guidelines.md](references/interaction-guidelines.md) - User persona, explanations
-- [package-management.md](references/package-management.md) - Pub tool, add, remove, dev deps
+## Communication
 
-## Quick Reference
-
-### Incremental Development
-1. Analyze → plan → present → implement step-by-step
-2. Wait for confirmation before next step
-3. Focused, concise responses
-
-### Communication
-- Ask clarifying questions when needed
-- Terminate after delivering value; no redundant closures
+- Terminate immediately after delivering information
+- No "Let me know if...", "Feel free to..." closures
 - Cognitive efficiency over conversational flow
+- When suggesting new dependencies, explain their benefits
 
-### Code
-- Dynamic code generators, not hard-coded examples
-- Exact file names; thorough, don't rush
+## Code Generation
+
+- Dynamic code generators, not hard-coded static examples
+- Always specify exact file name
+- Be thorough; provide complete code per step
+
+## Package Management
+
+- Use `mcp_dart_pub` if available; otherwise `flutter pub add <package>`
+- Dev deps: `pub add dev:<package>` or `flutter pub add dev:<package>`
+- Override: `override:<package>:1.0.0`
+- Remove: `dart pub remove <package>`
+- Discovery: `pub_dev_search` first
+
+## User Persona
+
+- User is familiar with programming but may be new to Dart
+- Explain Dart-specific features (null safety, futures, streams) when relevant

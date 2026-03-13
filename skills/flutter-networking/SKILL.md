@@ -1,312 +1,456 @@
 ---
 name: flutter-networking
-description: Comprehensive Flutter networking guidance including HTTP CRUD operations, WebSocket connections, authentication, error handling, and performance optimization. Use when Claude needs to implement HTTP requests GET POST PUT DELETE, WebSocket real-time communication, authenticated requests with headers and tokens, background parsing with isolates, REST API integration with proper error handling, or any network-related functionality in Flutter applications.
+description: Flutter networking — HTTP CRUD, WebSocket, authentication, error handling, performance. Use when implementing HTTP requests, WebSocket connections, authenticated requests, background parsing, or REST API integration.
 ---
 
 # Flutter Networking
 
-## Quick Start
+## HTTP
 
-Add HTTP dependency to `pubspec.yaml`:
+### Dependencies
 
 ```yaml
 dependencies:
   http: ^1.6.0
 ```
 
-Basic GET request:
+### CRUD Operations
 
 ```dart
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-Future<Album> fetchAlbum() async {
-  final response = await http.get(
-    Uri.parse('https://api.example.com/albums/1'),
-  );
+// GET
+final response = await http.get(Uri.parse('https://api.example.com/albums/1'));
 
-  if (response.statusCode == 200) {
-    return Album.fromJson(jsonDecode(response.body));
-  } else {
-    throw Exception('Failed to load album');
-  }
+// GET with query parameters
+final response = await http.get(
+  Uri.parse('https://api.example.com/albums')
+      .replace(queryParameters: {'userId': '1', '_limit': '10'}),
+);
+
+// POST
+final response = await http.post(
+  Uri.parse('https://api.example.com/albums'),
+  headers: {'Content-Type': 'application/json; charset=UTF-8'},
+  body: jsonEncode({'title': title}),
+);
+
+// PUT
+final response = await http.put(
+  Uri.parse('https://api.example.com/albums/1'),
+  headers: {'Content-Type': 'application/json; charset=UTF-8'},
+  body: jsonEncode({'title': title}),
+);
+
+// DELETE
+final response = await http.delete(
+  Uri.parse('https://api.example.com/albums/1'),
+  headers: {'Content-Type': 'application/json; charset=UTF-8'},
+);
+```
+
+### Response Handling
+
+```dart
+if (response.statusCode == 200) {
+  return Album.fromJson(jsonDecode(response.body));
+} else {
+  throw Exception('Failed: ${response.statusCode}');
 }
 ```
 
-Use in UI with `FutureBuilder`:
+### Model Pattern (Dart 3)
 
 ```dart
-FutureBuilder<Album>(
-  future: futureAlbum,
-  builder: (context, snapshot) {
-    if (snapshot.hasData) {
-      return Text(snapshot.data!.title);
-    } else if (snapshot.hasError) {
-      return Text('${snapshot.error}');
-    }
-    return const CircularProgressIndicator();
-  },
-)
+class Album {
+  final int id;
+  final String title;
+
+  const Album({required this.id, required this.title});
+
+  factory Album.fromJson(Map<String, dynamic> json) => switch (json) {
+    {'id': int id, 'title': String title} => Album(id: id, title: title),
+    _ => throw const FormatException('Failed to parse album'),
+  };
+
+  Map<String, dynamic> toJson() => {'id': id, 'title': title};
+}
 ```
 
-## HTTP Methods
-
-### GET - Fetch Data
-
-Use for retrieving data. See [http-basics.md](references/http-basics.md) for complete examples.
-
-### POST - Create Data
-
-Use for creating new resources. Requires `Content-Type: application/json` header.
+### Timeout
 
 ```dart
-final response = await http.post(
-  Uri.parse('https://api.example.com/albums'),
-  headers: <String, String>{
-    'Content-Type': 'application/json; charset=UTF-8',
-  },
-  body: jsonEncode(<String, String>{'title': title}),
-);
-```
-
-See [http-basics.md](references/http-basics.md) for POST examples.
-
-### PUT - Update Data
-
-Use for updating existing resources.
-
-```dart
-final response = await http.put(
-  Uri.parse('https://api.example.com/albums/1'),
-  headers: <String, String>{
-    'Content-Type': 'application/json; charset=UTF-8',
-  },
-  body: jsonEncode(<String, String>{'title': title}),
-);
-```
-
-### DELETE - Remove Data
-
-Use for deleting resources.
-
-```dart
-final response = await http.delete(
-  Uri.parse('https://api.example.com/albums/1'),
-  headers: <String, String>{
-    'Content-Type': 'application/json; charset=UTF-8',
-  },
+final response = await http.get(uri).timeout(
+  const Duration(seconds: 10),
+  onTimeout: () => throw TimeoutException('Request timeout'),
 );
 ```
 
 ## WebSocket
 
-Add WebSocket dependency:
+### Dependencies
 
 ```yaml
 dependencies:
   web_socket_channel: ^3.0.3
 ```
 
-Basic WebSocket connection:
+### Basic Usage
 
 ```dart
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-final _channel = WebSocketChannel.connect(
-  Uri.parse('wss://echo.websocket.events'),
+final channel = WebSocketChannel.connect(Uri.parse('wss://example.com/ws'));
+
+// Send
+channel.sink.add(jsonEncode({'type': 'chat', 'message': 'Hello'}));
+
+// Receive (StreamBuilder or listen)
+channel.stream.listen(
+  (data) { /* handle message */ },
+  onError: (error) { /* handle error */ },
+  onDone: () { /* connection closed */ },
+  cancelOnError: false,
 );
 
-// Listen for messages
-StreamBuilder(
-  stream: _channel.stream,
-  builder: (context, snapshot) {
-    return Text(snapshot.hasData ? '${snapshot.data}' : '');
-  },
-)
-
-// Send message
-_channel.sink.add('Hello');
-
-// Close connection
-_channel.sink.close();
+// Close in dispose()
+channel.sink.close();
 ```
 
-See [websockets.md](references/websockets.md) for complete WebSocket implementation.
+### Reconnection with Backoff
+
+```dart
+WebSocketChannel? _channel;
+Timer? _reconnectTimer;
+int _reconnectAttempts = 0;
+static const int _maxReconnectAttempts = 5;
+
+void _connect() {
+  try {
+    _channel = WebSocketChannel.connect(Uri.parse('wss://example.com/ws'));
+    _channel!.stream.listen(
+      (data) { _reconnectAttempts = 0; },
+      onError: (_) => _scheduleReconnect(),
+      onDone: () => _scheduleReconnect(),
+    );
+  } catch (_) {
+    _scheduleReconnect();
+  }
+}
+
+void _scheduleReconnect() {
+  if (_reconnectAttempts >= _maxReconnectAttempts) return;
+  _reconnectAttempts++;
+  _reconnectTimer?.cancel();
+  _reconnectTimer = Timer(Duration(seconds: _reconnectAttempts * 2), _connect);
+}
+```
+
+### WebSocket Auth
+
+```dart
+// Query parameter
+final uri = Uri.parse('wss://example.com/ws').replace(
+  queryParameters: {'token': token},
+);
+
+// Headers (IOWebSocketChannel)
+import 'package:web_socket_channel/io.dart';
+final channel = IOWebSocketChannel.connect(
+  'wss://example.com/ws',
+  headers: {'Authorization': 'Bearer $token'},
+);
+```
 
 ## Authentication
 
-Add authorization headers to requests:
+### Auth Header Patterns
 
 ```dart
 import 'dart:io';
 
-final response = await http.get(
-  Uri.parse('https://api.example.com/data'),
-  headers: {HttpHeaders.authorizationHeader: 'Bearer $token'},
-);
+// Bearer Token (JWT)
+headers: {HttpHeaders.authorizationHeader: 'Bearer $token'}
+
+// Basic Auth
+String basicAuth(String user, String pass) =>
+    'Basic ${base64Encode(utf8.encode('$user:$pass'))}';
+
+// API Key
+headers: {'X-API-Key': apiKey}
 ```
 
-Common authentication patterns:
-- **Bearer Token**: `Authorization: Bearer <token>`
-- **Basic Auth**: `Authorization: Basic <base64_credentials>`
-- **API Key**: `X-API-Key: <key>`
+### Token Storage (flutter_secure_storage)
 
-See [authentication.md](references/authentication.md) for detailed authentication strategies.
+```dart
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+class SecureTokenStorage {
+  final _storage = const FlutterSecureStorage();
+
+  Future<void> saveToken(String token) async =>
+      await _storage.write(key: 'auth_token', value: token);
+
+  Future<String?> getToken() async =>
+      await _storage.read(key: 'auth_token');
+
+  Future<void> clearToken() async =>
+      await _storage.delete(key: 'auth_token');
+}
+```
+
+### Interceptor Pattern (BaseClient)
+
+```dart
+class AuthenticatedClient extends http.BaseClient {
+  final http.Client _inner;
+  final AuthManager _authManager;
+
+  AuthenticatedClient(this._inner, this._authManager);
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    final token = await _authManager.getAccessToken();
+    request.headers['Authorization'] = 'Bearer $token';
+
+    final response = await _inner.send(request);
+
+    if (response.statusCode == 401) {
+      await _authManager.refreshAccessToken();
+      final newToken = await _authManager.getAccessToken();
+      request.headers['Authorization'] = 'Bearer $newToken';
+      return await _inner.send(request);
+    }
+
+    return response;
+  }
+}
+```
+
+### Token Refresh
+
+```dart
+class AuthManager {
+  final SecureTokenStorage _tokenStorage;
+  final http.Client _client;
+  String? _accessToken;
+  String? _refreshToken;
+
+  Future<String> getAccessToken() async {
+    if (_accessToken != null && !_isTokenExpired(_accessToken!)) {
+      return _accessToken!;
+    }
+    return await _refreshAccessToken();
+  }
+
+  Future<String> _refreshAccessToken() async {
+    final response = await _client.post(
+      Uri.parse('https://api.example.com/auth/refresh'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'refreshToken': _refreshToken}),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      _accessToken = data['accessToken'] as String;
+      _refreshToken = data['refreshToken'] as String;
+      await _tokenStorage.saveToken(_accessToken!);
+      return _accessToken!;
+    }
+    throw Exception('Failed to refresh token');
+  }
+}
+```
 
 ## Error Handling
 
-Handle HTTP errors appropriately:
+### Status Code Mapping
 
 ```dart
-if (response.statusCode >= 200 && response.statusCode < 300) {
-  return Data.fromJson(jsonDecode(response.body));
-} else if (response.statusCode == 401) {
-  throw UnauthorizedException();
-} else if (response.statusCode == 404) {
-  throw NotFoundException();
-} else {
-  throw ServerException();
+switch (response.statusCode) {
+  case 200 || 201 || 204:
+    return Data.fromJson(jsonDecode(response.body));
+  case 400: throw BadRequestException('Invalid request');
+  case 401: throw UnauthorizedException('Not authenticated');
+  case 403: throw ForbiddenException('Access denied');
+  case 404: throw NotFoundException('Not found');
+  case 429: throw TooManyRequestsException('Rate limit exceeded');
+  case >= 500: throw ServerException('Server error');
+  default: throw HttpException('HTTP ${response.statusCode}');
 }
 ```
 
-See [error-handling.md](references/error-handling.md) for comprehensive error handling strategies.
-
-## Performance
-
-### Background Parsing with Isolates
-
-For large JSON responses, use `compute()` to parse in background isolate:
+### Custom Exception Hierarchy
 
 ```dart
-import 'package:flutter/foundation.dart';
-
-Future<List<Photo>> fetchPhotos(http.Client client) async {
-  final response = await client.get(
-    Uri.parse('https://api.example.com/photos'),
-  );
-
-  return compute(parsePhotos, response.body);
+abstract class ApiException implements Exception {
+  final String message;
+  final int? statusCode;
+  ApiException(this.message, [this.statusCode]);
+  @override
+  String toString() => message;
 }
 
-List<Photo> parsePhotos(String responseBody) {
-  final parsed = (jsonDecode(responseBody) as List)
-      .cast<Map<String, dynamic>>();
-  return parsed.map<Photo>((json) => Photo.fromJson(json)).toList();
+class BadRequestException extends ApiException {
+  BadRequestException(super.message) : super(400);
+}
+class UnauthorizedException extends ApiException {
+  UnauthorizedException(super.message) : super(401);
+}
+class ForbiddenException extends ApiException {
+  ForbiddenException(super.message) : super(403);
+}
+class NotFoundException extends ApiException {
+  NotFoundException(super.message) : super(404);
+}
+class TooManyRequestsException extends ApiException {
+  TooManyRequestsException(super.message) : super(429);
+}
+class ServerException extends ApiException {
+  ServerException(super.message) : super(500);
+}
+class NetworkException extends ApiException {
+  NetworkException(super.message);
 }
 ```
 
-See [performance.md](references/performance.md) for optimization techniques.
-
-## Integration with Architecture
-
-When using MVVM architecture (see [flutter-architecture](../flutter-architecture/)):
-
-1. **Service Layer**: Create HTTP service for API endpoints
-2. **Repository Layer**: Aggregate data from services, handle caching
-3. **ViewModel Layer**: Transform repository data for UI
-
-Example service:
+### Connection Error Handling
 
 ```dart
-class AlbumService {
-  final http.Client _client;
-
-  AlbumService(this._client);
-
-  Future<Album> fetchAlbum(int id) async {
-    final response = await _client.get(
-      Uri.parse('https://api.example.com/albums/$id'),
-    );
-
-    if (response.statusCode == 200) {
-      return Album.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to load album');
-    }
-  }
+try {
+  return await future;
+} on SocketException catch (e) {
+  throw NetworkException('No internet: ${e.message}');
+} on HttpException catch (e) {
+  throw NetworkException('HTTP error: ${e.message}');
+} on FormatException catch (e) {
+  throw NetworkException('Invalid format: ${e.message}');
 }
 ```
 
-## Common Patterns
-
-### Repository Pattern
-
-Single source of truth for data type:
-
-```dart
-class AlbumRepository {
-  final AlbumService _service;
-  final LocalStorage _cache;
-
-  Future<Album> getAlbum(int id) async {
-    try {
-      return await _cache.getAlbum(id) ?? 
-             await _service.fetchAlbum(id);
-    } catch (e) {
-      throw AlbumFetchException();
-    }
-  }
-}
-```
-
-### Retry Logic
-
-Implement exponential backoff for failed requests:
+### Retry with Exponential Backoff
 
 ```dart
 Future<T> fetchWithRetry<T>(
   Future<T> Function() fetch, {
   int maxRetries = 3,
+  Duration initialDelay = const Duration(seconds: 1),
 }) async {
   for (int i = 0; i < maxRetries; i++) {
     try {
       return await fetch();
     } catch (e) {
       if (i == maxRetries - 1) rethrow;
-      await Future.delayed(Duration(seconds: 2 << i));
+      if (e is! NetworkException && e is! ServerException && e is! TooManyRequestsException) rethrow;
+      await Future.delayed(initialDelay * (i + 1));
     }
   }
   throw StateError('Unreachable');
 }
 ```
 
-## Best Practices
+## Performance
 
-### DO
+### Background Parsing (Isolates)
 
-- Use type-safe model classes with `fromJson` factories
-- Handle all HTTP status codes appropriately
-- Parse JSON in background isolates for large responses
-- Implement retry logic for transient failures
-- Cache responses when appropriate
-- Use proper timeouts
-- Secure tokens and credentials
+For large JSON responses (>10KB), parse in background isolate:
 
-### DON'T
+```dart
+import 'package:flutter/foundation.dart';
 
-- Parse JSON on main thread for large responses
-- Ignore error states in UI
-- Store tokens in source code or public repositories
-- Make requests without timeout configuration
-- Block UI thread with network operations
-- Throw generic exceptions without context
+Future<List<Photo>> fetchPhotos(http.Client client) async {
+  final response = await client.get(Uri.parse('https://api.example.com/photos'));
+  if (response.statusCode == 200) {
+    return compute(parsePhotos, response.body);
+  }
+  throw Exception('Failed to load');
+}
 
-## Resources
+List<Photo> parsePhotos(String body) =>
+    (jsonDecode(body) as List).cast<Map<String, dynamic>>()
+        .map((json) => Photo.fromJson(json)).toList();
+```
 
-### references/
-- [http-basics.md](references/http-basics.md) - Complete HTTP CRUD operations examples
-- [websockets.md](references/websockets.md) - WebSocket implementation patterns
-- [authentication.md](references/authentication.md) - Authentication strategies and token management
-- [error-handling.md](references/error-handling.md) - Comprehensive error handling patterns
-- [performance.md](references/performance.md) - Optimization techniques and best practices
+### In-Memory Cache with TTL
 
-### assets/examples/
-- `fetch_example.dart` - Complete GET request with FutureBuilder
-- `post_example.dart` - POST request implementation
-- `websocket_example.dart` - WebSocket client with stream handling
-- `auth_example.dart` - Authenticated request example
-- `background_parsing.dart` - compute() for JSON parsing
+```dart
+class CacheService<T> {
+  final Map<String, ({T value, DateTime expiry})> _cache = {};
+  final Duration defaultTtl;
 
-### assets/code-templates/
-- `http_service.dart` - Reusable HTTP service template
-- `repository_template.dart` - Repository pattern template
+  CacheService({this.defaultTtl = const Duration(minutes: 5)});
+
+  T? get(String key) {
+    final entry = _cache[key];
+    if (entry == null || DateTime.now().isAfter(entry.expiry)) {
+      _cache.remove(key);
+      return null;
+    }
+    return entry.value;
+  }
+
+  void set(String key, T value, {Duration? ttl}) {
+    _cache[key] = (value: value, expiry: DateTime.now().add(ttl ?? defaultTtl));
+  }
+}
+```
+
+### Request Deduplication
+
+```dart
+class RequestDeduplicator<T> {
+  final Map<String, Future<T>> _pending = {};
+
+  Future<T> fetch(String key, Future<T> Function() fetchFn) async {
+    if (_pending.containsKey(key)) return await _pending[key]!;
+    final future = fetchFn();
+    _pending[key] = future;
+    try { return await future; } finally { _pending.remove(key); }
+  }
+}
+```
+
+### Pagination
+
+```dart
+// Offset-based
+final response = await http.get(
+  uri.replace(queryParameters: {'offset': '$offset', 'limit': '$limit'}),
+);
+
+// Cursor-based
+class PageResult<T> {
+  final List<T> items;
+  final String? nextCursor;
+  PageResult({required this.items, required this.nextCursor});
+}
+```
+
+### Connection Pooling
+
+Reuse a single `http.Client` instance app-wide — inject via DI. Close on app dispose.
+
+### Request Batching
+
+```dart
+final results = await Future.wait(ids.map((id) => fetchItem(id)));
+```
+
+### Optimistic Updates
+
+Update cache immediately, rollback on error:
+
+```dart
+Future<Album> updateAlbum(int id, String title) async {
+  final cached = _cache.get('album-$id');
+  _cache.set('album-$id', cached!.copyWith(title: title));
+  try {
+    final result = await _updateOnServer(id, title);
+    _cache.set('album-$id', result);
+    return result;
+  } catch (e) {
+    _cache.set('album-$id', cached); // rollback
+    rethrow;
+  }
+}
+```

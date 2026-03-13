@@ -1,19 +1,13 @@
 ---
 name: flutter-drift
-description: Complete guide for using drift database library in Flutter applications. Use when building Flutter apps that need local SQLite database storage with type-safe queries, reactive streams, migrations, and efficient CRUD operations. Includes setup with drift_flutter package, StreamBuilder integration, Provider/Riverpod patterns, and Flutter-specific database management for mobile, web, and desktop platforms.
+description: Guide for drift database in Flutter. Use when building apps with local SQLite storage — type-safe queries, reactive streams, migrations, CRUD. Includes drift_flutter setup, StreamBuilder integration, and cross-platform support.
 ---
 
 # Flutter Drift
 
-Comprehensive guide for using drift database library in Flutter applications.
+## Setup
 
-## Overview
-
-Flutter Drift skill provides complete guidance for implementing persistent local storage in Flutter apps using the drift library. Drift is a reactive persistence library for Flutter built on SQLite, offering type-safe queries, auto-updating streams, schema migrations, and cross-platform support.
-
-## Quick Start
-
-Add dependencies to `pubspec.yaml`:
+### Dependencies
 
 ```yaml
 dependencies:
@@ -26,9 +20,20 @@ dev_dependencies:
   build_runner: ^2.10.4
 ```
 
-Define database:
+### Database Class
 
 ```dart
+import 'package:drift/drift.dart';
+import 'package:drift_flutter/drift_flutter.dart';
+
+part 'database.g.dart';
+
+class TodoItems extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get title => text()();
+  DateTimeColumn get createdAt => dateTime().nullable()();
+}
+
 @DriftDatabase(tables: [TodoItems])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e])
@@ -51,138 +56,7 @@ class AppDatabase extends _$AppDatabase {
 }
 ```
 
-Run code generator:
-
-```bash
-dart run build_runner build
-```
-
-## Reference Files
-
-See detailed documentation for each topic:
-
-- [setup.md](references/setup.md) - Flutter-specific setup with drift_flutter
-- [tables.md](references/tables.md) - Table definitions, columns, constraints
-- [queries.md](references/queries.md) - SELECT, WHERE, JOIN, aggregations
-- [writes.md](references/writes.md) - INSERT, UPDATE, DELETE, transactions
-- [streams.md](references/streams.md) - Reactive stream queries
-- [migrations.md](references/migrations.md) - Database schema migrations
-- [flutter-ui.md](references/flutter-ui.md) - Flutter UI integration patterns
-
-## Common Patterns
-
-### Reactive Todo List with StreamBuilder
-
-```dart
-class TodoList extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final database = Provider.of<AppDatabase>(context);
-
-    return StreamBuilder<List<TodoItem>>(
-      stream: select(database.todoItems).watch(),
-      builder: (context, snapshot) {
-        final todos = snapshot.data ?? [];
-        return ListView.builder(
-          itemCount: todos.length,
-          itemBuilder: (context, index) {
-            final todo = todos[index];
-            return ListTile(
-              title: Text(todo.title),
-              trailing: Checkbox(
-                value: todo.isCompleted,
-                onChanged: (value) {
-                  database.update(database.todoItems).replace(
-                    TodoItem(
-                      id: todo.id,
-                      title: todo.title,
-                      isCompleted: value ?? false,
-                    ),
-                  );
-                },
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-}
-```
-
-### Add Item with Form
-
-```dart
-Future<void> showAddTodoDialog(BuildContext context) async {
-  final controller = TextEditingController();
-  final database = Provider.of<AppDatabase>(context);
-
-  await showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Add Todo'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(labelText: 'Title'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              if (controller.text.isNotEmpty) {
-                await database.into(database.todoItems).insert(
-                  TodoItemsCompanion.insert(title: controller.text),
-                );
-                if (context.mounted) {
-                  Navigator.pop(context);
-                }
-              }
-            },
-            child: const Text('Add'),
-          ),
-        ],
-      );
-    },
-  );
-
-  controller.dispose();
-}
-```
-
-### Provider Setup
-
-```dart
-final databaseProvider = Provider<AppDatabase>((ref) {
-  final database = AppDatabase();
-  ref.onDispose(database.close);
-  return database;
-});
-```
-
-### Database Migration
-
-```dart
-@override
-MigrationStrategy get migration {
-  return MigrationStrategy(
-      onUpgrade: stepByStep(
-        from1To2: (m, schema) async {
-          await m.addColumn(schema.todoItems, schema.todoItems.dueDate);
-        },
-      ),
-    );
-}
-```
-
-## Platform-Specific Setup
-
-### Mobile (Android/iOS/macOS/Windows/Linux)
-
-Uses `drift_flutter` with `getApplicationSupportDirectory`.
+Generate: `dart run build_runner build` (or `watch` during dev).
 
 ### Web
 
@@ -194,52 +68,398 @@ Place `sqlite3.wasm` and `drift_worker.js` in `web/` folder.
 AppDatabase.defaults(): super(
   driftDatabase(
     name: 'app_db',
-    native: DriftNativeOptions(
-      shareAcrossIsolates: true,
-    ),
+    native: DriftNativeOptions(shareAcrossIsolates: true),
   ),
 );
 ```
 
-## Testing
-
-Use in-memory database for tests:
+### Testing
 
 ```dart
-AppDatabase createTestDatabase() {
-  return AppDatabase(NativeDatabase.memory());
+AppDatabase createTestDatabase() => AppDatabase(NativeDatabase.memory());
+```
+
+## Tables
+
+### Column Types
+
+| Dart Type | Drift Column | SQL Type |
+|-----------|-------------|----------|
+| `int` | `integer()` | `INTEGER` |
+| `BigInt` | `int64()` | `INTEGER` |
+| `String` | `text()` | `TEXT` |
+| `bool` | `boolean()` | `INTEGER` (0/1) |
+| `double` | `real()` | `REAL` |
+| `Uint8List` | `blob()` | `BLOB` |
+| `DateTime` | `dateTime()` | `INTEGER` or `TEXT` |
+
+### Column Modifiers
+
+```dart
+integer().nullable()()                           // nullable
+dateTime().withDefault(currentDateAndTime)()      // SQL default
+boolean().clientDefault(() => true)()             // Dart default
+boolean().named('admin')()                        // custom column name
+text().withLength(min: 1, max: 50)()              // length constraint
+integer().check(age.isBiggerOrEqualValue(0))()    // check constraint
+text().unique()()                                 // unique
+integer().references(Artists, #id)()              // foreign key
+```
+
+### Primary Keys
+
+```dart
+// Auto increment (default)
+IntColumn get id => integer().autoIncrement()();
+
+// Custom primary key
+@override
+Set<Column<Object>> get primaryKey => {email};
+```
+
+### Unique Keys (Multi-Column)
+
+```dart
+@override
+List<Set<Column>> get uniqueKeys => [{room, onDay}];
+```
+
+### Indexes
+
+```dart
+@TableIndex(name: 'user_name', columns: {#name})
+class Users extends Table { ... }
+
+// With ordering
+@TableIndex(
+  name: 'log_at',
+  columns: {IndexedColumn(#loggedAt, orderBy: OrderingMode.desc)},
+)
+
+// Custom SQL
+@TableIndex.sql('CREATE INDEX pending ON orders (creation_time) WHERE status == \'pending\';')
+```
+
+### Generated Columns
+
+```dart
+late final area = integer().generatedAs(length * width)();               // virtual
+late final area = integer().generatedAs(length * width, stored: true)(); // stored
+```
+
+### Table Mixins
+
+```dart
+mixin TableMixin on Table {
+  late final id = integer().autoIncrement()();
+  late final createdAt = dateTime().withDefault(currentDateAndTime)();
+}
+
+class Posts extends Table with TableMixin {
+  late final content = text()();
 }
 ```
 
-## Best Practices
+### Custom Table Name / Strict Tables
 
-1. **Use drift_flutter** for easy database setup across platforms
-2. **StreamBuilder** for reactive UI updates
-3. **Provider/Riverpod** for database access management
-4. **Close database** on app/widget dispose
-5. **Use migrations** when schema changes
-6. **Index columns** used in WHERE clauses
-7. **Limit stream query size** for performance
-8. **Use transactions** for multi-step operations
-9. **Debounce user input** for search/filter
-10. **Handle loading/error states** in UI
+```dart
+@override
+String get tableName => 'product_table';
+
+@override
+bool get isStrict => true;
+```
+
+### Enable Foreign Keys
+
+```dart
+MigrationStrategy get migration => MigrationStrategy(
+  beforeOpen: (details) async {
+    await customStatement('PRAGMA foreign_keys = ON');
+  },
+);
+```
+
+## Queries
+
+### Select
+
+```dart
+final all = await select(todoItems).get();
+final stream = select(todoItems).watch();
+```
+
+### Where
+
+```dart
+final result = await (select(todoItems)
+  ..where((t) => t.isCompleted.equals(true) & t.priority.isBiggerThanValue(3))
+).get();
+```
+
+Operators: `equals`, `isBiggerThan`, `isSmallerThan`, `isBiggerOrEqualValue`, `isSmallerOrEqualValue`, `like`, `contains`, `isNull`, `isNotNull`
+
+### Order By, Limit, Single Row
+
+```dart
+..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)])
+..limit(20, offset: 40)
+
+// Single row
+.getSingle()        // throws if not found
+.getSingleOrNull()  // returns null
+.watchSingle()      // stream single row
+.watchSingleOrNull()
+```
+
+### Map Results
+
+```dart
+final titles = await select(todoItems)
+  .map((row) => row.title)
+  .get();
+```
+
+### Joins
+
+```dart
+// Inner join
+final results = await (select(todoItems)
+  .join([innerJoin(categories, categories.id.equalsExp(todoItems.category))])
+  .map((row) => (
+    entry: row.readTable(todoItems),
+    category: row.readTableOrNull(categories),
+  ))
+  .get();
+
+// Left outer join
+leftOuterJoin(categories, categories.id.equalsExp(todoItems.category))
+
+// Self join
+final other = alias(todoItems, 'other');
+```
+
+### Aggregations
+
+```dart
+// Count all
+final count = await (selectOnly(todoItems)
+  .addColumns([countAll()])
+  .map((row) => row.read(countAll()))
+  .getSingle();
+
+// Group by
+(select(categories).join([
+  innerJoin(todoItems, todoItems.category.equalsExp(categories.id), useColumns: false),
+])
+  ..addColumns([todoItems.id.count()])
+  ..groupBy([categories.id]))
+```
+
+### Subqueries
+
+```dart
+// In WHERE
+..where((t) => t.createdAt.isBiggerThan(
+  subqueryExpression(selectOnly(todoItems).addColumns([max(todoItems.createdAt)])),
+))
+
+// From subquery
+final sub = Subquery(select(todoItems)..orderBy(...)..limit(10), 's');
+final results = await select(sub).get();
+```
+
+### Custom Columns, Exists, Union
+
+```dart
+final isImportant = todoItems.content.like('%important%');
+select(todoItems).addColumns([isImportant]).map((row) => row.read(isImportant)!);
+
+existsQuery(select(todoItems))
+
+query1.unionAll(query2).get()
+```
+
+## Writes
+
+### Insert
+
+```dart
+final id = await into(todoItems).insert(
+  TodoItemsCompanion.insert(title: 'First todo'),
+);
+
+// Bulk
+await batch((b) {
+  b.insertAll(todoItems, [
+    TodoItemsCompanion.insert(title: 'First'),
+    TodoItemsCompanion.insert(title: 'Second'),
+  ]);
+});
+
+// Upsert (SQLite 3.24+)
+await into(users).insertOnConflictUpdate(companion);
+
+// Custom conflict target
+await into(products).insert(companion, onConflict: DoUpdate(target: [sku]));
+
+// Insert returning (SQLite 3.35+)
+final row = await into(todos).insertReturning(companion);
+```
+
+### Update
+
+```dart
+// Partial update
+await (update(todoItems)..where((t) => t.id.equals(1)))
+  .write(TodoItemsCompanion(title: const Value('Updated')));
+
+// Full replace
+await update(todoItems).replace(TodoItem(id: 1, title: 'Updated', ...));
+
+// SQL expression
+await update(users).write(UsersCompanion.custom(name: users.name.lower()));
+```
+
+### Delete
+
+```dart
+await (delete(todoItems)..where((t) => t.id.equals(1))).go();
+await delete(todoItems).go();  // WARNING: deletes ALL rows
+```
+
+### Companions vs Data Classes
+
+- **Data class** (`TodoItem`) — full row, all fields required
+- **Companion** (`TodoItemsCompanion`) — partial data for inserts/updates
+
+```dart
+Value('text')      // set to this value
+Value(null)        // SET column = NULL
+Value.absent()     // don't change this column
+```
+
+### Transactions
+
+```dart
+await transaction(() async {
+  await into(todoItems).insert(...);
+  await into(categories).insert(...);
+});
+// Automatically rolls back on exception
+```
+
+### Batch Operations
+
+```dart
+await batch((b) {
+  b.insertAll(todoItems, [...]);
+  b.update(todoItems, companion);
+  b.delete(todoItems, id);
+});
+```
+
+## Streams
+
+All queries support `.watch()` / `.watchSingle()` / `.watchSingleOrNull()` for reactive updates.
+
+### Limitations
+
+1. External changes (outside drift APIs) don't trigger updates
+2. Coarse updates — any table change triggers all watchers on that table
+3. Keep stream queries efficient (use indexes, limit rows)
+
+## Migrations
+
+### Configure build.yaml
+
+```yaml
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          databases:
+            my_database: lib/database.dart
+          schema_dir: drift_schemas/
+          test_dir: test/drift/
+```
+
+Generate: `dart run drift_dev make-migrations`
+
+### Step-by-Step
+
+```dart
+@override
+int get schemaVersion => 3;
+
+@override
+MigrationStrategy get migration => MigrationStrategy(
+  onUpgrade: stepByStep(
+    from1To2: (m, schema) async {
+      await m.addColumn(schema.users, schema.users.birthDate);
+    },
+    from2To3: (m, schema) async {
+      await m.create(schema.todosDelete);
+      await m.alterTable(TableMigration(schema.todoItems));
+    },
+  ),
+  beforeOpen: (details) async {
+    await customStatement('PRAGMA foreign_keys = ON');
+    if (details.wasCreated) {
+      // Seed default data
+    }
+  },
+);
+```
+
+### Migration Operations
+
+```dart
+m.addColumn(schema.users, schema.users.birthDate)
+m.dropColumn(schema.users, schema.users.oldField)
+m.renameColumn(schema.users, schema.users.name, schema.users.fullName)
+m.createTable(schema.categories)
+m.deleteTable('users')
+m.alterTable(TableMigration(schema.todoItems))
+m.create(schema.usersByNameIndex)     // create index
+m.dropIndex('users_name_idx')
+m.customStatement('UPDATE users SET status = ...')
+```
+
+### Manual Migrations (without make-migrations)
+
+```dart
+onUpgrade: (Migrator m, int from, int to) async {
+  if (from == 1 && to == 2) {
+    await m.addColumn(todoItems, todoItems.dueDate);
+  }
+}
+```
+
+### Test Migrations
+
+```bash
+dart test test/drift/schema_test.dart
+dart run drift_dev schema validate
+```
+
+## Flutter UI Integration
+
+Use StreamBuilder with `.watch()` for reactive UI. Handle loading/error/empty states.
+
+Search with debounce:
+```dart
+stream: (select(db.todoItems)
+  ..where((t) => t.title.contains(searchText))
+).watch()
+```
 
 ## Troubleshooting
 
-### Build Fails
-
 ```bash
-dart run build_runner clean
-dart run build_runner build --delete-conflicting-outputs
-```
-
-### Migration Errors
-
-```bash
+dart run build_runner clean && dart run build_runner build --delete-conflicting-outputs
 dart run drift_dev schema validate
-dart run drift_dev make-migrations
 ```
 
-### Stream Not Updating
-
-Ensure operations go through drift APIs, not raw SQLite.
+Stream not updating — ensure operations go through drift APIs, not raw SQLite.

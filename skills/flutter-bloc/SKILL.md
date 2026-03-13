@@ -1,44 +1,73 @@
 ---
 name: flutter-bloc
-description: Complete guide for Bloc and Cubit state management in Flutter. Use when implementing bloc/cubit state management, naming events and states, testing blocs with bloc_test, configuring bloc_lint, or choosing between Bloc and Cubit for feature state.
+description: BLoC/Cubit state management for Flutter — naming, state modeling, widgets, testing, architecture rules.
 ---
 
 # Flutter Bloc
 
-## Overview
+## Naming
 
-Complete guide for Bloc and Cubit state management in Flutter applications.
+- **Events**: past tense, `BlocSubject + noun + verb` — `LoginButtonPressed`, `UserProfileLoaded`
+- **Initial load event**: `BlocSubjectStarted`
+- **Base event class**: `BlocSubjectEvent`
+- **States**: nouns (snapshot in time)
+- **State subclasses**: `BlocSubject + Initial | Success | Failure | InProgress`
+- **Single-class state**: `BlocSubjectState` + `BlocSubjectStatus` enum
+- **Base state class**: `BlocSubjectState`
 
-## Reference Files
+## State Modeling
 
-See detailed documentation for each topic:
+- Extend `Equatable`; annotate `@immutable`; implement `copyWith`; use `const` constructors
+- **Single class + status enum**: simple states, many shared properties
+- **Sealed class + subclasses**: exclusive states, type safety, exhaustiveness (preferred)
+- Shared properties in sealed base class; state-specific in subclasses
+- Pass all relevant properties to `props`; copy `List`/`Map` with `List.of`/`Map.of`
+- Emit a new state instance every time; never reuse same instance
 
-- [naming.md](references/naming.md) - Event and state naming conventions
-- [state-modeling.md](references/state-modeling.md) - Equatable, sealed, single-class, props
-- [bloc-concepts.md](references/bloc-concepts.md) - Cubit vs Bloc, emit, observers, internal events
-- [architecture.md](references/architecture.md) - Layer separation, repository injection, coordination
-- [flutter-widgets.md](references/flutter-widgets.md) - BlocBuilder, BlocListener, context.read/watch/select
-- [testing.md](references/testing.md) - bloc_test, blocTest, widget test mocking
-- [code-quality.md](references/code-quality.md) - bloc_lint, bloc_tools
-- [ecosystem.md](references/ecosystem.md) - Packages, event transformers, DevTools
+## Cubit vs Bloc
 
-## Quick Start
+| Cubit | Bloc |
+|---|---|
+| Simple state, no events, less boilerplate | Complex event-driven logic, traceability |
+| Public methods return `void`/`Future<void>` | Trigger via `add()`; no custom public methods |
 
-### Naming
+Start with Cubit; refactor to Bloc if needed.
 
-- **Events**: Past tense, `BlocSubject + verb` (e.g. `LoginButtonPressed`)
-- **Base event**: `BlocSubjectEvent`
-- **States**: Nouns, `BlocSubject + Initial|Success|Failure|InProgress`
-- **Base state**: `BlocSubjectState`
+## Core Rules
 
-### Bloc vs Cubit
+- Do **not** wrap `emit()` in try-catch
+- Only `emit` inside Cubit/Bloc; never externally
+- Duplicate states (`state == nextState`) are ignored
+- Internal bloc events must be private (only for real-time repo updates)
+- No Flutter imports in blocs, cubits, repositories
+- Do not expose public fields on Bloc/Cubit; access state via getter
+- Initialize `BlocObserver` in `main.dart`
 
-| Use Cubit when | Use Bloc when |
-|----------------|---------------|
-| Simple state, no event traceability | Complex flows, need event history |
-| Less boilerplate | Debounce/throttle on events |
+## Flutter Widgets
 
-### blocTest
+| Widget | Purpose |
+|---|---|
+| `BlocBuilder` | Rebuild on state changes (builder must be pure) |
+| `BlocListener` | Side effects only (navigation, dialogs) |
+| `BlocConsumer` | Builder + listener combined |
+| `BlocSelector` | Rebuild only on selected state slice |
+| `BlocProvider` / `MultiBlocProvider` | Provide blocs to subtree |
+| `RepositoryProvider` / `MultiRepositoryProvider` | Provide repos to subtree |
+
+**Context access:**
+- `context.read<T>()` — one-off, no rebuild (callbacks)
+- `context.watch<T>()` — subscribe and rebuild (inside `build`)
+- `context.select<T, R>()` — rebuild on specific slice
+
+Prefer `BlocBuilder`/`BlocSelector` over `context.watch`/`context.select` for explicit scoping. Handle all states in UI: empty, loading, error, populated.
+
+## Architecture
+
+- Inject repositories/use cases into blocs via constructors
+- No direct bloc-to-bloc communication — use `BlocListener` to listen to one and `add` events to another
+- Shared data: inject same repository into multiple blocs
+
+## Testing
 
 ```dart
 blocTest<CounterCubit, CounterState>(
@@ -49,16 +78,13 @@ blocTest<CounterCubit, CounterState>(
 );
 ```
 
-## Key Rules
+- Test initial state first, then transitions
+- Mock cubits/blocs in widget tests for all possible states
+- `bloc_test` for state transitions; `bloc_lint` in CI
 
-- Do not wrap `emit()` in try-catch
-- Inject repositories via constructor
-- Coordinate blocs via BlocListener adding events to another bloc
-- Use BlocProvider.of(context) in child BuildContext, not provider context
-- Handle all states in UI: empty, loading, error, populated
+## Ecosystem
 
-## External Resources
-
-- [bloc package](https://bloclibrary.dev)
-- [bloc_test](https://pub.dev/packages/bloc_test)
-- [bloc_lint](https://pub.dev/packages/bloc_lint)
+- **bloc_concurrency** — event transformers: sequential, concurrent, droppable, restartable
+- **hydrated_bloc** — state persistence across sessions
+- **replay_bloc** — undo/redo
+- **bloc_lint** / **bloc_tools** — linting and CLI scaffolding

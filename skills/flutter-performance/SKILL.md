@@ -1,32 +1,44 @@
 ---
 name: flutter-performance
-description: Performance optimization for Flutter apps. Use when optimizing lists (ListView.builder), build methods, const constructors, isolates (compute), RepaintBoundary, images, pagination, or profiling with DevTools.
+description: Performance optimization for Flutter apps. Use when optimizing lists, build methods, const/keys, images, RepaintBoundary, isolates, or profiling with DevTools.
 ---
 
 # Flutter Performance
 
-## Overview
+## Lists
+- `ListView.builder` / `GridView.builder` / `SliverList` for large lists — never `Column`/`Row` with many children
+- `const` constructors for list item widgets
+- Pagination: load in chunks, combine with builder
+- Lazy loading: load on demand (scroll/visibility)
 
-Performance rules: lists, build methods, const/keys, images, RepaintBoundary, isolates, data structures, profiling.
+## Build Methods
+- No expensive work in `build()` — move to `initState`, `didChangeDependencies`, or cached values
+- Scope rebuilds: `Builder`, `ValueListenableBuilder`, `StreamBuilder`, `BlocBuilder`
+- Extract frequently rebuilt subtrees into separate widget classes
 
-## Reference Files
+## Const & Keys
+- `const` constructors for static widgets — reused across rebuilds
+- Keys for widgets that maintain identity across reorders: `ValueKey`, `ObjectKey`, `UniqueKey`
 
-See detailed documentation for each topic:
+## Images
+- `Image.asset` — cached automatically
+- Network images: `cached_network_image` package
+- Don't reload same image on every rebuild
 
-- [lists.md](references/lists.md) - ListView.builder, recycling, pagination, lazy loading
-- [build-methods.md](references/build-methods.md) - Avoid expensive ops, builders, separate widgets
-- [const-keys.md](references/const-keys.md) - const constructors, keys
-- [images.md](references/images.md) - Image caching
-- [repaint-boundary.md](references/repaint-boundary.md) - RepaintBoundary for custom painters
-- [isolates.md](references/isolates.md) - compute() for CPU-intensive work
-- [data-algorithms.md](references/data-algorithms.md) - Efficient structures and algorithms
-- [profiling.md](references/profiling.md) - Flutter DevTools
+## RepaintBoundary
+- Wrap complex custom painters — isolates repaint region from siblings/parent
+- Adds a compositing layer; profile before/after to validate benefit
 
-## Quick Reference
+## Isolates
+- `compute()` for CPU-intensive work: JSON parsing, image processing, batch transforms
+- Function and argument must be top-level or static (isolate can't share references)
 
-- **Lists:** ListView.builder, const items, pagination, lazy load
-- **Build:** No expensive ops; builders; separate widgets
-- **Const/Keys:** const for static; keys for identity
-- **Isolates:** compute() for CPU-heavy work
-- **RepaintBoundary:** Complex custom painters
-- **Profile:** Flutter DevTools regularly
+## Data Structures
+- Right structure for the job: List vs Set vs Map, growable vs fixed
+- Prefer O(1)/O(log n) over O(n) at scale
+- Cache expensive computations when inputs don't change
+
+## Profiling
+- Flutter DevTools: Timeline, CPU profiler, memory view
+- Identify: build time, layout, paint, rasterize bottlenecks
+- Profile before/after optimizations and periodically during development

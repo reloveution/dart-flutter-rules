@@ -5,33 +5,56 @@ description: Dependency injection patterns for Dart/Flutter applications. Use wh
 
 # Dart Dependency Injection
 
-## Overview
+## Composition Root
 
-Dependency injection with get_it: service location at composition root, constructor injection, proper registration order, and testability.
+- `get_it` calls (`getIt.get<T>()`) only at app init (`main()` or setup function)
+- Never inside class constructors or methods
+- Exception: global UI services (e.g. audio player for button click sounds) -- document clearly, keep to absolute minimum
+- Resolve dependencies at composition root, pass to constructors when creating instances
 
-## Reference Files
+```dart
+// Composition root (main.dart or setup function)
+final service = getIt<IService>();
+final repository = getIt<IRepository>(param1: service);
+final useCase = getIt<IUseCase>(param1: repository);
+final controller = MyController(useCase: useCase);
+```
 
-See detailed documentation for each topic:
+## Constructor Injection
 
-- [service-location.md](references/service-location.md) - get_it, composition root only, resolution order
-- [registration.md](references/registration.md) - Factory vs singleton
-- [injection.md](references/injection.md) - Constructor injection, bad/good, exceptions
-- [resolution.md](references/resolution.md) - Composition root setup example
-- [management.md](references/management.md) - Lifecycle, scoping, circular dependencies
-- [testing.md](references/testing.md) - Mocks, multiple environments
+- All dependencies through constructors: `MyClass(this.service, this.repository)`
+- Use abstract classes as interfaces, not concrete implementations
+- Enables swapping implementations in tests without overriding get_it
 
-## Quick Reference
+## Registration
 
-### Composition Root Only
-- Call `getIt.get<T>()` only at app init (main/setup)
-- Never inside class constructors or methods (except rare documented exceptions)
+- Order: datasources -> repositories -> use cases -> controllers (leaf nodes first)
+- Factory: stateless services, new instance per resolution
+- Singleton: stateful services (repositories, API clients, databases), shared instance
+- Prefer instance-based singletons -- avoid static methods and lazy proxy wrappers
 
-### Constructor Injection
-- Inject via constructors: `MyClass(this.service, this.repository)`
-- Use abstract interfaces, not concrete implementations
+## Lifecycle & Scoping
 
-### Registration Order
-- datasources → repositories → use cases → controllers
+- Dispose singletons that hold resources (database, StreamController)
+- Global singletons for app-wide services
+- Scoped providers (e.g. `RepositoryProvider`) for feature-specific dependencies in Flutter
 
-### Testing
+## Circular Dependencies
+
+- If A depends on B and B on A: extract shared interface, introduce mediator, or split responsibility
+- Circular registration causes runtime errors or infinite loops
+
+## Testing
+
 - Constructor injection enables easy mocking: `MyClass(mockService, mockRepository)`
+- No need to override get_it or register mocks globally for unit tests
+- Separate setup functions or parameters to switch implementations per environment (dev/staging/prod)
+
+```dart
+test('should do something', () {
+  final mockRepo = MockIRepository();
+  when(() => mockRepo.get()).thenAnswer((_) async => result);
+  final useCase = MyUseCase(mockRepo);
+  // test useCase
+});
+```

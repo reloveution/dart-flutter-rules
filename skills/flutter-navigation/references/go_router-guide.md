@@ -1,135 +1,83 @@
 # go_router Guide
 
-## Basic Setup
+## Setup
 
-Add to `pubspec.yaml`:
 ```yaml
+# pubspec.yaml
 dependencies:
   go_router: ^17.0.0
 ```
 
-## Simple Configuration
-
 ```dart
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-
-final _router = GoRouter(
+final router = GoRouter(
   routes: [
     GoRoute(path: '/', builder: (context, state) => HomeScreen()),
     GoRoute(path: '/details', builder: (context, state) => DetailsScreen()),
   ],
 );
 
-void main() {
-  runApp(MaterialApp.router(routerConfig: _router));
-}
+void main() => runApp(MaterialApp.router(routerConfig: router));
 ```
 
-## Navigation Methods
-
-### Declarative Navigation
-
-**Go to screen (replace current):**
-```dart
-context.go('/details');
-```
-
-**Push screen (add to stack):**
-```dart
-context.push('/details');
-```
-
-**Pop screen (go back):**
-```dart
-context.pop();
-// OR return data
-context.pop('result_value');
-```
-
-### Named Routes with go_router
+## Named Routes
 
 ```dart
 GoRoute(
   name: 'details',
   path: '/details/:id',
-  builder: (context, state) {
-    final id = state.pathParameters['id'];
-    return DetailsScreen(id: id!);
-  },
+  builder: (context, state) => DetailsScreen(id: state.pathParameters['id']!),
 );
 
-// Navigate using name
 context.goNamed('details', pathParameters: {'id': '123'});
-// With query parameters
-context.goNamed('details', 
+context.goNamed('details',
   pathParameters: {'id': '123'},
   queryParameters: {'tab': 'info'},
 );
 ```
 
-## Passing Data
+## Data Passing
 
-### Path Parameters
+**Path params** (mandatory):
 ```dart
-GoRoute(path: '/users/:userId', builder: (context, state) {
-  final userId = state.pathParameters['userId'];
-  return UserDetailScreen(userId: userId!);
-});
+GoRoute(path: '/users/:userId', builder: (context, state) =>
+  UserDetailScreen(userId: state.pathParameters['userId']!));
 
 context.push('/users/123');
 ```
 
-### Query Parameters
+**Query params** (optional):
 ```dart
-GoRoute(path: '/search', builder: (context, state) {
-  final query = state.queryParameters['q'];
-  final page = state.queryParameters['page'];
-  return SearchScreen(query: query, page: int.tryParse(page ?? '1'));
-});
+GoRoute(path: '/search', builder: (context, state) =>
+  SearchScreen(
+    query: state.uri.queryParameters['q'],
+    page: int.tryParse(state.uri.queryParameters['page'] ?? '1'),
+  ));
 
 context.push('/search?q=flutter&page=2');
-// OR using queryParameters parameter
-context.push('/search', queryParameters: {'q': 'flutter', 'page': '2'});
 ```
 
-### Extra Data
+**Extra data** (not in URL, lost on web refresh):
 ```dart
-GoRoute(path: '/details', builder: (context, state) {
-  final extra = state.extra as Map<String, dynamic>?;
-  return DetailsScreen(data: extra);
-});
+GoRoute(path: '/details', builder: (context, state) =>
+  DetailsScreen(data: state.extra as Map<String, dynamic>?));
 
 context.push('/details', extra: {'key': 'value'});
-// Can combine with query parameters
-context.push('/details', 
-  extra: {'key': 'value'},
-  queryParameters: {'id': '123'},
-);
 ```
 
-## Advanced Patterns
-
-### Nested Routes (Shell Routes)
+## Shell Routes (Nested Navigation)
 
 ```dart
 ShellRoute(
-  builder: (context, state, child) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('App')),
-      body: child,
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
-        ],
-        onTap: (index) {
-          if (index == 0) context.go('/home');
-          if (index == 1) context.go('/settings');
-        },
-      ),
-    );
-  },
+  builder: (context, state, child) => Scaffold(
+    body: child,
+    bottomNavigationBar: BottomNavigationBar(
+      items: const [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
+      ],
+      onTap: (index) => context.go(index == 0 ? '/home' : '/settings'),
+    ),
+  ),
   routes: [
     GoRoute(path: '/home', builder: (context, state) => HomeScreen()),
     GoRoute(path: '/settings', builder: (context, state) => SettingsScreen()),
@@ -137,27 +85,22 @@ ShellRoute(
 );
 ```
 
-### Route Guards (Redirects)
+## Route Guards
 
 ```dart
 GoRouter(
   redirect: (context, state) {
     final isAuthenticated = checkAuth();
     final isLoggingIn = state.matchedLocation == '/login';
-
-    if (!isAuthenticated && !isLoggingIn) {
-      return '/login';
-    }
-    if (isAuthenticated && isLoggingIn) {
-      return '/';
-    }
-    return null; // no redirect
+    if (!isAuthenticated && !isLoggingIn) return '/login';
+    if (isAuthenticated && isLoggingIn) return '/';
+    return null;
   },
   routes: [...],
 );
 ```
 
-### Error Handling
+## Error Handling
 
 ```dart
 GoRouter(
@@ -166,39 +109,11 @@ GoRouter(
 );
 ```
 
-## Deep Linking
+## Pitfalls
 
-go_router automatically handles deep linking. Ensure platform setup:
-
-**Android** (`AndroidManifest.xml`):
-```xml
-<intent-filter>
-  <action android:name="android.intent.action.VIEW" />
-  <category android:name="android.intent.category.DEFAULT" />
-  <category android:name="android.intent.category.BROWSABLE" />
-  <data android:scheme="https" android:host="yourapp.com" />
-</intent-filter>
-```
-
-**iOS** (`Info.plist`):
-```xml
-<key>CFBundleURLTypes</key>
-<array>
-  <dict>
-    <key>CFBundleURLSchemes</key>
-    <array>
-      <string>yourapp</string>
-    </array>
-  </dict>
-</array>
-```
-
-## Common Pitfalls
-
-1. **Don't use `Navigator.push/pop` directly** when using go_router for main navigation
-2. **Always check `context.mounted`** after async navigation operations
-3. **Use `context.push()`** for adding to stack, `context.go()` for replacing
-4. **Path parameters are mandatory**, query parameters are optional
-5. **Web browser back button works automatically** with go_router
-6. **API changes in v7.0.0+**: Use `pathParameters`/`queryParameters` instead of `params`/`queryParams`, and `matchedLocation` instead of `subloc`
-7. **Use `ShellRoute`** for nested navigation with persistent UI, not nested `GoRoute` with `Navigator`
+1. Don't use `Navigator.push/pop` for main navigation — only for overlays
+2. Check `context.mounted` after async operations before navigating
+3. `context.go()` replaces route, `context.push()` adds to stack
+4. Path params are mandatory, query params are optional
+5. API v7.0.0+: `pathParameters`/`uri.queryParameters` (not `params`/`queryParams`), `matchedLocation` (not `subloc`)
+6. Use `ShellRoute` for persistent UI, not nested `GoRoute` with `Navigator`

@@ -5,33 +5,53 @@ description: Mocktail testing guidelines for Dart/Flutter. Use when creating moc
 
 # Dart Mocktail
 
-## Overview
+## Fake vs Mock
 
-Mocktail usage: Fake vs Mock, mock creation, fallback values, stubbing, verification, matchers.
+- **Fake:** lightweight custom behavior subset; use when asserting on outcomes (result values, state).
+- **Mock:** use when verifying interactions (specific methods called, args, call count).
+- Prefer real collaborators or fakes over mocks -- outcome-based tests are more robust.
 
-## Reference Files
+## Mock Creation
 
-See detailed documentation for each topic:
+- Extend `Mock` -- never add manual overrides or concrete implementations.
 
-- [fake-vs-mock.md](references/fake-vs-mock.md) - When to use Fake vs Mock
-- [mock-creation.md](references/mock-creation.md) - Extend Mock, no overrides
-- [fallback-values.md](references/fallback-values.md) - registerFallbackValue
-- [stubbing.md](references/stubbing.md) - Sync, async, thenThrow
-- [verification.md](references/verification.md) - verify, verifyNever, called(n)
-- [parameters-matchers.md](references/parameters-matchers.md) - Named params, any(), captureAny
-- [best-practices.md](references/best-practices.md) - Real/fakes, stub all, toString
+```dart
+class MockIRepository extends Mock implements IRepository {}
+```
 
-## Quick Reference
+## Fallback Values
 
-### Fake vs Mock
-- Fake: assert outcomes; Mock: verify interactions
+- Register fallback values for every non-nullable custom type used in matchers (`any()`, `captureAny()`, `captureThat()`).
+- Must run before stubbing or verifying -- typically in `setUpAll()`.
 
-### Stubbing
-- Sync: `when(() => mock.method()).thenReturn(value)`
-- Async: `thenAnswer((_) async => result)` or `thenReturn(Future.value(result))`
+```dart
+setUpAll(() {
+  registerFallbackValue(MyDomainType());
+  registerFallbackValue(Result.success(dummy));
+});
+```
 
-### Fallbacks
-- `registerFallbackValue(SomeType())` for every custom type in matchers
+## Stubbing
 
-### Verification
-- `verify(() => mock.method())`, `verifyNever`, `verify(...).called(n)`
+- Sync: `when(() => mock.method()).thenReturn(value)` for fixed return.
+- Sync dynamic: `thenAnswer((invocation) => value)` for computed response.
+- Async: `thenAnswer((_) async => result)` -- preferred over `thenReturn(Future.value(...))`.
+- Failure: `thenThrow(error)` for error branches.
+- Stub every dependency method the test expects to execute -- unstubbed calls cause `MissingStubError`.
+
+## Verification
+
+- `verify(() => mock.method())` -- method was called.
+- `verifyNever(() => mock.method())` -- method was not called.
+- `verify(() => mock.method()).called(n)` -- assert exact call count.
+
+## Parameters and Matchers
+
+- Supply all named parameters in both stubs and verifies; use `any(named: 'param')` when the exact value is irrelevant.
+- `any()` -- match any positional value.
+- `captureAny()` -- capture argument for later assertion.
+- `captureThat(matcher)` -- capture when matcher matches.
+
+## Best Practices
+
+- Custom types used in matchers should have consistent `==` and `toString` for deterministic assertions.

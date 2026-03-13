@@ -5,34 +5,46 @@ description: Error handling patterns for Dart/Flutter. Use when implementing Res
 
 # Dart Error Handling
 
-## Overview
+## Result<T>
 
-Error handling with Result<T>, specific exceptions, try-catch at boundaries, validation, retry, logging, and resource cleanup.
+- All business operations (sync included) return `Result<T>` -- never throw in business logic
+- Use as UI feedback wrapper: `failure.message` or `failure.toUserMessage()` for snackbars/dialogs
 
-## Reference Files
+## Exception vs Error
 
-See detailed documentation for each topic:
+- **Exception**: expected failures (network, validation, I/O) -- catch with `on SpecificException catch (e) {}`
+- **Error**: programming errors (AssertionError, StateError) -- never catch, let propagate
+- Only throw `Error` subclasses for programming errors (lint: `only_throw_errors`)
+- `rethrow` (not `throw e`) to preserve stack trace (lint: `use_rethrow_when_possible`)
 
-- [prevention.md](references/prevention.md) - Anticipate errors, specific types, meaningful messages
-- [result.md](references/result.md) - Result<T>, convert to failures, UI feedback
-- [try-catch.md](references/try-catch.md) - When to use, specific catch, Error vs Exception, rethrow
-- [validation-retry.md](references/validation-retry.md) - Input validation, network retry
-- [logging-reporting.md](references/logging-reporting.md) - Structured logging, production, platform
-- [resources.md](references/resources.md) - Close sinks, avoid leaks
+## Try-Catch
 
-## Quick Reference
+- Use only at external boundaries (HTTP, database, file I/O, platform channels) -- convert to `Result.failure` immediately
+- Never wrap pure business logic that uses `Result<T>`
+- `finally` for cleanup only -- no control flow, no return, no throw (lint: `control_flow_in_finally`, `throw_in_finally`)
 
-### Result<T>
-- All business logic returns Result; no throwing
-- Convert caught exceptions to Result.failure at boundaries
+## Error Types
 
-### Exception vs Error
-- Catch Exception; never catch Error
-- Use `rethrow` to preserve stack trace
+- Specific types: `NetworkFailure`, `ValidationError`, `NotFoundError`
+- Include context: which field failed, suggested next step
+- Map platform exceptions to domain `Result` failures
+- User-facing: friendly messages only, never expose technical details
 
-### Try-Catch
-- Only for external API, database, system operations
-- Specific catch: `on SpecificException catch (e)`
+## Validation and Retry
 
-### Resources
-- Close StreamController, IOSink; avoid leaks
+- Validate at boundaries, fail fast -- return `Result.failure` with clear messages
+- Network retry: exponential backoff for transient failures only
+- Set max retries; return `Result.failure` after exhaustion
+
+## Logging
+
+- `log()` from `dart:developer` -- never `print`/`debugPrint` (lint: `avoid_print`)
+- Include: error type, message, stack trace, relevant IDs
+- Crash reporting (e.g. Firebase Crashlytics) for production
+- Never log sensitive data (passwords, tokens, PII)
+
+## Resource Cleanup
+
+- Close sinks, cancel subscriptions, close connections/file handles in `dispose` (lint: `close_sinks`, `cancel_subscriptions`)
+- Ensure cleanup runs on error paths -- use try-finally or `await for` with disposal
+- Design for failure paths explicitly -- never fail silently
